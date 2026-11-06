@@ -1,5 +1,25 @@
 import './App.css';
+import {
+  LineChart, Line, XAxis, YAxis, CartesianGrid,
+  Tooltip, ResponsiveContainer, PieChart, Pie, Cell
+} from 'recharts';
+ const soldeData = [
+    {mois:'Jan', solde: 1200},
+    {mois:'Fev', solde: 900},
+    {mois:'Mar', solde: 2600},
+    {mois:'Avr', solde: 400},
+    {mois:'Mai', solde: 12000},
+    {mois:'Jui', solde: 3600}
+];
 
+const depensesData =[
+  { categorie : 'Logement' , montant : 900},
+  { categorie : 'Alimentation', montant : 600},
+  { categorie : 'Transport', montant : 300},
+  { categorie:  'Loisir', montant : 200},
+];
+
+const COLORS = ['#455d50', '#8ba58e', '#c8b8a4', '#e8ede4'];
 function App(){
 return(
 
@@ -45,16 +65,53 @@ return(
   <div className='charts-grid'>
     <div className='chart-card'>
     <h2>Évolution de ton solde </h2>
+    <ResponsiveContainer width="100%" height={220}>
+      <LineChart data={soldeData}>
+      <CartesianGrid strokeDasharray = "3 3" stroke="#e5e9e1"/>
+      <XAxis dataKey="mois" />
+      <YAxis />
+      <Tooltip /> 
+      <Line
+        type="monotone"
+        dataKey="solde"
+        stroke="#455d50"
+        strokeWidth={3}
+        dot={{ fill: "#8ba58e", r: 5 }}
+        activeDot={{ r: 7 }}
+       />
+      </LineChart>
+    </ResponsiveContainer>
   </div>
   
     <div className='chart-card'>
       <h2>Répartition des dépenses</h2>
+      <ResponsiveContainer width = "100%"  height ={220}>
+         
+  <PieChart>
+  <Pie
+    data={depensesData}
+    dataKey="montant"
+    nameKey="categorie"
+    cx="50%"
+    cy="50%"
+    innerRadius={55}
+    outerRadius={85}
+  >
+    {depensesData.map((depense, index) => (
+      <Cell
+        key={depense.categorie}
+        fill={COLORS[index]}
+      />
+    ))}
+  </Pie>
+  <Tooltip />
+</PieChart>
+        
+    
+      </ResponsiveContainer>
       </div>
-
-
-
-
   </div>
+
   </main>
 
 </div> 
