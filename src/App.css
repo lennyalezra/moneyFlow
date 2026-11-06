@@ -53,8 +53,7 @@
   color: #e5eee5;
   font-size: 14px;
   font-weight: 500;
-  transition: background 0.2s, transform 0.2s;
-}
+transition: background 0.2s, transform 0.2s;}
 
 .nav-links a:hover {
   background: rgba(255, 255, 255, 0.13);
@@ -246,5 +245,93 @@
   .chart-card {
     min-height: 260px;
     padding: 20px;
+  }
+}
+.stat-card .budget-danger {
+  color: #c65d55;
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 8px;
+  letter-spacing: normal;
+}
+
+.stat-card .budget-success {
+  color: #4d8062;
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 8px;
+  letter-spacing: normal;
+}
+
+
+/* Section transactions récentes */
+.transactions-card {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 25px;
+  margin-top: 25px;
+  box-shadow: 0 4px 20px rgba(69, 93, 80, 0.06);
+}
+
+.transactions-card h2 {
+  color: #34483b;
+  font-size: 20px;
+  margin-bottom: 20px;
+}
+
+/* Chaque transaction */
+.transaction-item {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  align-items: center;
+  gap: 15px;
+  padding: 17px 10px;
+  border-bottom: 1px solid #e8ede4;
+}
+
+.transaction-item:last-child {
+  border-bottom: none;
+}
+
+.transaction-item p {
+  margin: 0;
+  font-size: 14px;
+}
+
+.transaction-item p:first-child {
+  font-weight: 600;
+  color: #34483b;
+  text-transform: capitalize;
+}
+
+.transaction-item p:nth-child(2) {
+  color: #89958a;
+}
+
+/* Montants */
+.transaction-item .montant-negatif {
+  color: #c65b5b;
+  font-weight: 700;
+}
+
+.transaction-item .montant-positif {
+  color: #438563;
+  font-weight: 700;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .transaction-item {
+    grid-template-columns: 1fr auto;
+  }
+
+  .transaction-item p:nth-child(2) {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .transaction-item p:last-child {
+    grid-column: 2;
+    grid-row: 1 / 3;
   }
 }
