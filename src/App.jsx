@@ -9,22 +9,36 @@ import {
      { id : 1,
      nom : "courses",
      categorie : "Alimentation" ,
-     montant : -65
+     montant : -65,
+     date: "2026-11-26"
     },
   
   {
     id : 2,
     nom : "Salaire",
     categorie : "Revenus",
-    montant : 2500
+    montant : 2500,
+    date : "2026-11-17"
   },
 
   {
     id : 3, 
     nom : "Loyer",
     categorie : "Logement",
-    montant : -900
+    montant : -900,
+    date : "2026-11-06"
   }];
+
+const transactionTriees = transactionsData.toSorted((a,b)=> a.date.localeCompare(b.date))
+const transactionRecentes = transactionsData.toSorted((a,b) => b.date.localeCompare(a.date))
+let soldeCumule = 0;
+
+
+const evolutionSolde = transactionTriees.map((transaction)=>
+{soldeCumule = soldeCumule + transaction.montant
+return {date:transaction.date, solde: soldeCumule}}
+)
+
 
   const transactionDepenses = transactionsData.filter ((transaction) => (
     transaction.montant < 0 )
@@ -55,14 +69,6 @@ const revenus= transactionRevenus.reduce((totale , transaction)=>{
 const soldeActuel = revenus - depenses
 const budgetRestant = budget - depenses
 
-const soldeData = [
-    {mois:'Jan', solde: 1200},
-    {mois:'Fev', solde: 900},
-    {mois:'Mar', solde: 2600},
-    {mois:'Avr', solde: 400},
-    {mois:'Mai', solde: 12000},
-    {mois:'Jui', solde: soldeActuel}
-];
 function App(){
 return(
 
@@ -111,9 +117,10 @@ return(
     <div className='chart-card'>
     <h2>Évolution de ton solde </h2>
     <ResponsiveContainer width="100%" height={220}>
-      <LineChart data={soldeData}>
+      <LineChart data={evolutionSolde}>
       <CartesianGrid strokeDasharray = "3 3" stroke="#e5e9e1"/>
-      <XAxis dataKey="mois" />
+      <XAxis dataKey="date"
+       tickFormatter={(date)=> date.slice(8,10) + "/" + date.slice(5,7)} />
       <YAxis />
       <Tooltip /> 
       <Line
@@ -159,11 +166,12 @@ return(
 
   <div className = "transactions-card">
     <h2>Transactions récentes</h2>
-    {transactionsData.map((transaction) => (
+    {transactionRecentes.map((transaction) => (
       <div className = "transaction-item"  key = {transaction.id}> 
       <p> {transaction.nom }</p> 
       <p> {transaction.categorie}</p>
       <p className= {transaction.montant < 0 ? "montant-negatif" : "montant-positif"}> {transaction.montant}€</p>
+      <p className = "transaction-date">{transaction.date.slice(8,10) + "/" + transaction.date.slice(5,7)}</p>
       </div>
 ))}
   </div>
