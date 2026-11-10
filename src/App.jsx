@@ -1,4 +1,6 @@
 import './App.css';
+import {useState, useEffect} from "react";
+
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, PieChart, Pie, Cell
@@ -29,47 +31,125 @@ import {
     date : "2026-11-06"
   }];
 
-const transactionTriees = transactionsData.toSorted((a,b)=> a.date.localeCompare(b.date))
-const transactionRecentes = transactionsData.toSorted((a,b) => b.date.localeCompare(a.date))
-let soldeCumule = 0;
 
-
-const evolutionSolde = transactionTriees.map((transaction)=>
-{soldeCumule = soldeCumule + transaction.montant
-return {date:transaction.date, solde: soldeCumule}}
-)
-
-
-  const transactionDepenses = transactionsData.filter ((transaction) => (
-    transaction.montant < 0 )
-  )
-
-  const depensesData = transactionDepenses.map((transaction)=>(
-  {categorie : transaction.categorie, 
-   montant : Math.abs(transaction.montant)}
-))
-
+ 
 
 
 
 const COLORS = ['#455d50', '#8ba58e', '#c8b8a4', '#e8ede4'];
 
-const depenses= Math.abs( transactionDepenses.reduce ((total,transaction) => {
+
+function App(){
+const [transactions, setTransactions] = useState(JSON.parse(localStorage.getItem("transactions")) || transactionsData);
+  const [nom , setNom] = useState("");
+  const [categorie, setCategorie] = useState("");
+  const [montant, setMontant] = useState("");
+
+useEffect(() =>{
+  localStorage.setItem("transactions", JSON.stringify(transactions))
+  
+}, [transactions]);
+
+
+
+
+  function ajouterTransaction() {
+  const aujourdhui = new Date();
+  const annee = aujourdhui.getFullYear();
+  const mois = aujourdhui.getMonth() + 1;
+  const jour = aujourdhui.getDate();
+
+  const dateComplete = `${annee}-${String(mois).padStart(2, "0")}-${String(jour).padStart(2, "0")}`;
+
+ 
+    const nouvelleTransaction = {
+    id: Date.now(),
+    nom: nom.trim(),
+    categorie: categorie.trim(),
+    montant: Number(montant),
+    date: dateComplete
+  }
+
+
+
+    const transactionsExiste = transactions.some(
+    (transaction)=> transaction.id === nouvelleTransaction.id
+  );
+    
+    if (!nom.trim() || !categorie.trim() || !Number.isFinite(Number(montant)) || Number(montant)===0){
+      return
+    }
+    if (!transactionsExiste){
+    setTransactions([...transactions,nouvelleTransaction]);
+    setNom("");
+    setMontant("");
+    setCategorie("");
+    const transactionMiseAJour = [...transactions, nouvelleTransaction];
+    const resultat = JSON.stringify(transactionMiseAJour);
+    }
+}
+
+function supprimerTransaction(id) {
+  const transactionsFiltrees = transactions.filter(
+    (transaction) => transaction.id !== id
+  );
+
+  setTransactions(transactionsFiltrees);
+}
+
+
+
+  const transactionRecentes = transactions.toSorted((a,b) => b.date.localeCompare(a.date))
+  
+  const transactionDepenses = transactions.filter ((transaction) => (
+    transaction.montant < 0 ))
+
+const depensesParCategorie = transactionDepenses.reduce((accumulateur,transaction)=> {
+  const categorie = transaction.categorie;
+  if (!accumulateur[categorie]){
+    accumulateur[categorie] = 0;
+  }  
+  accumulateur[categorie] += Math.abs(transaction.montant) 
+  return accumulateur;
+}, {});
+
+  const depensesRegroupees = Object.entries (depensesParCategorie).map(([categorie, montant])=>({
+    categorie: categorie,
+    montant: montant
+  }),
+);
+
+  const depenses= Math.abs( transactionDepenses.reduce ((total,transaction) => {
 return total + transaction.montant;
 }, 0));
-const transactionRevenus = transactionsData.filter((transaction)=>
+  
+  const transactionRevenus = transactions.filter((transaction)=>
 transaction.montant > 0 )
-const budget= 1200
 
-const revenus= transactionRevenus.reduce((totale , transaction)=>{
+  const revenus= transactionRevenus.reduce((totale , transaction)=>{
   return totale + transaction.montant
 } , 0 );
 
+  const budget= 1200
 
-const soldeActuel = revenus - depenses
-const budgetRestant = budget - depenses
+  const soldeActuel = revenus - depenses
+  const budgetRestant = budget - depenses
 
-function App(){
+  
+
+
+
+
+  const transactionTriees = transactions.toSorted((a,b)=> a.date.localeCompare(b.date))
+
+  let soldeCumule = 0;
+
+  const evolutionSolde = transactionTriees.map((transaction)=>
+{soldeCumule = soldeCumule + transaction.montant
+return {date:transaction.date, solde: soldeCumule}}
+)
+
+
 return(
 
 <div className='app'>
@@ -102,12 +182,12 @@ return(
 
   <div className ='stat-card'>
     <h3>Revenus</h3>
-    <p>{revenus.toLocaleString('fr-FR')}€</p>
+    <p>{revenus.toLocaleString('fr-FR')} €</p>
   </div>
 
   <div className ='stat-card'>
     <h3>Budget restant </h3>
-    <p className = { budgetRestant < 0 ? "budget-danger" : "budget-success" }>{budgetRestant.toLocaleString ('fr-FR')}€</p>
+    <p className = { budgetRestant < 0 ? "budget-danger" : "budget-success" }>{budgetRestant.toLocaleString ('fr-FR')} €</p>
     <p className ={budgetRestant < 0 ? "budget-danger" : "budget-success"} >
       { budgetRestant < 0 ? "budget dépassé" : "budget respecté"} </p>
   </div>
@@ -141,7 +221,7 @@ return(
          
   <PieChart>
   <Pie
-    data={depensesData}
+    data={depensesRegroupees}
     dataKey="montant"
     nameKey="categorie"
     cx="50%"
@@ -149,7 +229,7 @@ return(
     innerRadius={55}
     outerRadius={85}
   >
-    {depensesData.map((depense, index) => (
+    {depensesRegroupees.map((depense, index) => (
       <Cell
         key={depense.categorie}
         fill={COLORS[index]}
@@ -166,12 +246,31 @@ return(
 
   <div className = "transactions-card">
     <h2>Transactions récentes</h2>
+    <input type = "text" placeholder = "nom de la transaction" value = {nom} onChange={(event) => setNom(event.target.value)}/>
+    <input type = "number" placeholder='valeur du montant' value ={montant} onChange={(event) =>setMontant(event.target.value)}/>
+    <select  value ={categorie} onChange={(event) =>setCategorie(event.target.value)}>
+    <option value = ""> Choisir une catégorie</option>
+    <option value ="Alimentation">Alimentation</option>
+    <option value ="Logement">Logement</option>
+    <option value ="Transport">Transport</option>
+    <option value ="Loisirs">Loisirs</option>
+    <option value ="Shopping">Shopping</option>
+    <option value ="Santé">Santé</option>
+    <option value ="Abonnement">Abonnement</option>
+    <option value ="Revenus">Revenus</option>
+    <option value ="Autres">Autres</option>
+
+
+    </select>
+   
+    <button onClick={ajouterTransaction}>Ajouter une transaction</button>
     {transactionRecentes.map((transaction) => (
       <div className = "transaction-item"  key = {transaction.id}> 
       <p> {transaction.nom }</p> 
       <p> {transaction.categorie}</p>
-      <p className= {transaction.montant < 0 ? "montant-negatif" : "montant-positif"}> {transaction.montant}€</p>
+      <p className= {transaction.montant < 0 ? "montant-negatif" : "montant-positif"}> {transaction.montant.toLocaleString('fr-FR')} €</p>
       <p className = "transaction-date">{transaction.date.slice(8,10) + "/" + transaction.date.slice(5,7)}</p>
+      <button onClick={() => supprimerTransaction(transaction.id)}>Supprimer</button>
       </div>
 ))}
   </div>
