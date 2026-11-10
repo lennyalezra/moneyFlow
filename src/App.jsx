@@ -44,6 +44,7 @@ const [transactions, setTransactions] = useState(JSON.parse(localStorage.getItem
   const [nom , setNom] = useState("");
   const [categorie, setCategorie] = useState("");
   const [montant, setMontant] = useState("");
+  const [typeTransaction, setTypeTransaction] = useState("depense")
 
 useEffect(() =>{
   localStorage.setItem("transactions", JSON.stringify(transactions))
@@ -66,7 +67,7 @@ useEffect(() =>{
     id: Date.now(),
     nom: nom.trim(),
     categorie: categorie.trim(),
-    montant: Number(montant),
+    montant: typeTransaction ==="depense" ? -Math.abs(Number(montant)) : Math.abs(Number(montant)),
     date: dateComplete
   }
 
@@ -99,7 +100,7 @@ function supprimerTransaction(id) {
 
 
 
-  const transactionRecentes = transactions.toSorted((a,b) => b.date.localeCompare(a.date))
+  const transactionRecentes = transactions.toSorted((a,b) => b.date.localeCompare(a.date)).slice(0,5);
   
   const transactionDepenses = transactions.filter ((transaction) => (
     transaction.montant < 0 ))
@@ -248,6 +249,10 @@ return(
     <h2>Transactions récentes</h2>
     <input type = "text" placeholder = "nom de la transaction" value = {nom} onChange={(event) => setNom(event.target.value)}/>
     <input type = "number" placeholder='valeur du montant' value ={montant} onChange={(event) =>setMontant(event.target.value)}/>
+    <select value = {typeTransaction} onChange={(event)=>setTypeTransaction(event.target.value)}>
+      <option value="depense">depense</option>
+      <option value ="revenu">revenu</option>
+    </select>
     <select  value ={categorie} onChange={(event) =>setCategorie(event.target.value)}>
     <option value = ""> Choisir une catégorie</option>
     <option value ="Alimentation">Alimentation</option>
@@ -260,11 +265,16 @@ return(
     <option value ="Revenus">Revenus</option>
     <option value ="Autres">Autres</option>
 
+    
+
 
     </select>
    
     <button onClick={ajouterTransaction}>Ajouter une transaction</button>
-    {transactionRecentes.map((transaction) => (
+    {
+    transactionRecentes.length === 0 
+    ? <p> aucune transaction pour le moment </p>
+     :  transactionRecentes.map((transactions)=>(
       <div className = "transaction-item"  key = {transaction.id}> 
       <p> {transaction.nom }</p> 
       <p> {transaction.categorie}</p>
