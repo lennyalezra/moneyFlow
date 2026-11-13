@@ -2,8 +2,9 @@
 import { useEffect, useMemo, useState } from "react";
 import "./App.css";
 import "./Accueil.css";
-import Objectifs from "./pages/Objectifs";
+import "./ThemeGlobal.css";
 
+import Objectifs from "./pages/Objectifs";
 import Transactions from "./pages/Transactions";
 import Budgets from "./pages/Budgets";
 import Statistiques from "./pages/Statistiques";
@@ -255,6 +256,44 @@ function App() {
       ),
     [transactions, moisPrecedent]
   );
+
+  // MODE SOMBRE GLOBAL
+
+  useEffect(() => {
+    function appliquerTheme() {
+      try {
+        const preferences = JSON.parse(
+          localStorage.getItem("moneyflow-parametres") || "{}"
+        );
+
+        document.documentElement.dataset.theme =
+          preferences.theme === "sombre" ? "sombre" : "clair";
+      } catch {
+        document.documentElement.dataset.theme = "clair";
+      }
+    }
+
+    appliquerTheme();
+
+    window.addEventListener(
+      "moneyflow-theme-change",
+      appliquerTheme
+    );
+
+    window.addEventListener("storage", appliquerTheme);
+
+    return () => {
+      window.removeEventListener(
+        "moneyflow-theme-change",
+        appliquerTheme
+      );
+
+      window.removeEventListener(
+        "storage",
+        appliquerTheme
+      );
+    };
+  }, []);
 
   function calculerTotaux(liste) {
     return liste.reduce(
@@ -916,14 +955,18 @@ function App() {
         </div>
 
         <button
+          type="button"
           className="menu-toggle"
           onClick={() => setMenuOuvert(!menuOuvert)}
-          aria-label="Ouvrir le menu"
+          aria-label={menuOuvert ? "Fermer le menu" : "Ouvrir le menu"}
+          aria-expanded={menuOuvert}
+          aria-controls="navigation-principale"
         >
-          ☰
+          {menuOuvert ? "✕" : "☰"}
         </button>
 
         <nav
+          id="navigation-principale"
           className={
             menuOuvert
               ? "nav-links ouvert"
@@ -976,7 +1019,7 @@ function App() {
             setCategories={setCategories}
           />
         ) : pageActive === "objectifs" ? (
-        <Objectifs objectifs={objectifs} setObjectifs={setObjectifs} />
+          <Objectifs objectifs={objectifs} setObjectifs={setObjectifs} />
         ) : pageActive === "statistiques" ? (
           <Statistiques
             transactions={transactions}

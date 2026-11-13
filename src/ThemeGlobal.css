@@ -1,0 +1,627 @@
+
+/* ==========================================
+   MONEYFLOW — MODE SOMBRE GLOBAL
+   Anthracite, lavande et sauge
+   ========================================== */
+
+/* PALETTE */
+
+:root[data-theme="sombre"] {
+  color-scheme: dark;
+
+  --mf-fond: #17191f;
+  --mf-carte: #252831;
+  --mf-texte: #f1edf7;
+  --mf-secondaire: #b4b0c0;
+  --mf-bordure: #42414e;
+  --mf-champ: #20232b;
+
+  --dark-bg: #17191f;
+  --dark-card: #252831;
+  --dark-card-hover: #2e313c;
+  --dark-text: #f1edf7;
+  --dark-muted: #b4b0c0;
+  --dark-border: #42414e;
+  --dark-input: #20232b;
+
+  --dark-lavande: #bba1e1;
+  --dark-lavande-fonce: #79649c;
+  --dark-sauge: #a1c5ac;
+  --dark-rouge: #f19b9b;
+}
+
+/* ==========================================
+   1. FOND GENERAL
+   ========================================== */
+
+:root[data-theme="sombre"] body,
+:root[data-theme="sombre"] #root,
+:root[data-theme="sombre"] .app,
+:root[data-theme="sombre"] .app > .main-content {
+  background: var(--dark-bg) !important;
+  color: var(--dark-text) !important;
+}
+
+/* ==========================================
+   2. SIDEBAR
+   ========================================== */
+
+:root[data-theme="sombre"] .mf-sidebar {
+  background: linear-gradient(
+    160deg,
+    #292733,
+    #1d1c26
+  ) !important;
+}
+
+:root[data-theme="sombre"] .mf-sidebar-decoration {
+  background: linear-gradient(
+    145deg,
+    #51415f,
+    #87709d
+  ) !important;
+}
+
+:root[data-theme="sombre"] .mf-sidebar .nav-links a {
+  color: #f1edf7 !important;
+}
+
+:root[data-theme="sombre"] .mf-sidebar .nav-links a:hover,
+:root[data-theme="sombre"] .mf-sidebar .nav-links a.lien-actif {
+  background: rgba(187, 161, 225, 0.17) !important;
+}
+
+/* ==========================================
+   3. FONDS DES SEPT PAGES
+   ========================================== */
+
+:root[data-theme="sombre"] :is(
+  .mf-accueil,
+  .transactions-page,
+  .trans-page,
+  .budgets-page,
+  .budget-page,
+  .obj-page,
+  .stats-page,
+  .statistiques-page,
+  .categories-page,
+  .cat-page,
+  .param-page
+) {
+  background: var(--dark-bg) !important;
+  color: var(--dark-text) !important;
+}
+
+/* ==========================================
+   4. ACCUEIL
+   ========================================== */
+
+/* Cartes financières */
+
+:root[data-theme="sombre"] .mf-carte-finance:nth-child(n) {
+  background: linear-gradient(
+    145deg,
+    #2b2c37,
+    #242630
+  ) !important;
+
+  border-color: var(--dark-border) !important;
+  color: var(--dark-text) !important;
+}
+
+/* Sections */
+
+:root[data-theme="sombre"] .mf-section,
+:root[data-theme="sombre"] .mf-objectif {
+  background: var(--dark-card) !important;
+  border-color: var(--dark-border) !important;
+}
+
+/* Analyses */
+
+:root[data-theme="sombre"] .mf-analyse.alerte {
+  background: #392c36 !important;
+}
+
+:root[data-theme="sombre"] .mf-analyse.reussite {
+  background: #29382f !important;
+}
+
+:root[data-theme="sombre"] .mf-analyse.conseil {
+  background: #352c42 !important;
+}
+
+/* Titres */
+
+:root[data-theme="sombre"] :is(
+  .mf-entete h1,
+  .mf-section-entete h2,
+  .mf-carte-finance > strong,
+  .mf-carte-haut,
+  .mf-objectif-haut strong,
+  .mf-transaction-infos strong,
+  .mf-analyse h3,
+  .mf-analyse p,
+  .mf-vide h2,
+  .mf-vide h3
+) {
+  color: var(--dark-text) !important;
+}
+
+/* Textes secondaires */
+
+:root[data-theme="sombre"] :is(
+  .mf-entete p,
+  .mf-sur-titre,
+  .mf-section-entete p,
+  .mf-objectif-contenu p,
+  .mf-carte-detail,
+  .mf-transaction-infos small,
+  .mf-transaction-montant small,
+  .mf-vide p
+) {
+  color: var(--dark-muted) !important;
+}
+
+/* Transactions récentes */
+
+:root[data-theme="sombre"] .mf-transaction {
+  border-bottom-color: var(--dark-border) !important;
+}
+
+/* ==========================================
+   5. OBJECTIFS
+   ========================================== */
+
+:root[data-theme="sombre"] .obj-header h1,
+:root[data-theme="sombre"] .obj-stat h3,
+:root[data-theme="sombre"] .obj-stat strong,
+:root[data-theme="sombre"] .obj-goal-title h2,
+:root[data-theme="sombre"] .obj-goal-amount strong {
+  color: var(--dark-text) !important;
+}
+
+:root[data-theme="sombre"] .obj-header p,
+:root[data-theme="sombre"] .obj-stat p,
+:root[data-theme="sombre"] .obj-goal-title p,
+:root[data-theme="sombre"] .obj-goal-footer span {
+  color: var(--dark-muted) !important;
+}
+
+/* Statistiques */
+
+:root[data-theme="sombre"] .obj-stat:nth-child(n) {
+  background: #2b2b39 !important;
+  color: var(--dark-text) !important;
+}
+
+/* Cartes objectifs */
+
+:root[data-theme="sombre"] .obj-goal,
+:root[data-theme="sombre"] .obj-goal.lavande {
+  background: linear-gradient(
+    145deg,
+    #2b2b37,
+    #242630
+  ) !important;
+
+  border-color: var(--dark-border) !important;
+  color: var(--dark-text) !important;
+}
+
+/* Ajouter un objectif */
+
+:root[data-theme="sombre"] .obj-add-card {
+  background: #2d2739 !important;
+  border-color: #76618c !important;
+  color: var(--dark-text) !important;
+}
+
+:root[data-theme="sombre"] .obj-add-card p {
+  color: var(--dark-muted) !important;
+}
+
+/* Filtres */
+
+:root[data-theme="sombre"] .obj-filtres {
+  background: var(--dark-input) !important;
+  border-color: var(--dark-border) !important;
+}
+
+:root[data-theme="sombre"] .obj-filtres button:not(.active) {
+  color: var(--dark-text) !important;
+}
+
+/* Progression */
+
+:root[data-theme="sombre"] .obj-progress {
+  background: #41414c !important;
+}
+
+:root[data-theme="sombre"] .obj-percent {
+  background: #443653 !important;
+  color: #dbc3f5 !important;
+}
+
+:root[data-theme="sombre"] .obj-goal-footer button {
+  background: #393447 !important;
+  color: #dbc3f5 !important;
+}
+
+/* ==========================================
+   6. STATISTIQUES
+   ========================================== */
+
+:root[data-theme="sombre"] .stats-page {
+  background: var(--dark-bg) !important;
+}
+
+:root[data-theme="sombre"] :is(
+  .stats-graphique-carte,
+  .stats-epargne-carte,
+  .stats-objectif-carte,
+  .stats-analyse,
+  .stats-analyse.attention,
+  .stats-analyse.positif
+) {
+  background: var(--dark-card) !important;
+  border-color: var(--dark-border) !important;
+  color: var(--dark-text) !important;
+}
+
+:root[data-theme="sombre"] :is(
+  .stats-header h1,
+  .stats-carte-entete h2,
+  .stats-montant:not(.negatif),
+  .stats-pourcentage,
+  .stats-analyse-texte h2
+) {
+  color: var(--dark-text) !important;
+}
+
+:root[data-theme="sombre"] :is(
+  .stats-header p,
+  .stats-carte-entete p,
+  .stats-analyse-texte p,
+  .stats-objectif-bas span,
+  .stats-objectif-vide,
+  .stats-footer
+) {
+  color: var(--dark-muted) !important;
+}
+
+/* Périodes */
+
+:root[data-theme="sombre"] .stats-periodes {
+  background: var(--dark-input) !important;
+  border-color: var(--dark-border) !important;
+}
+
+:root[data-theme="sombre"] .stats-periodes button:not(.actif) {
+  color: var(--dark-text) !important;
+}
+
+/* Barres */
+
+:root[data-theme="sombre"] .stats-barre {
+  background: #41414c !important;
+}
+
+:root[data-theme="sombre"] .stats-indication {
+  background: #304437 !important;
+  color: #b5dfbd !important;
+}
+
+/* ==========================================
+   7. TRANSACTIONS, BUDGETS, CATEGORIES
+   ========================================== */
+
+/* Fonds des pages */
+
+:root[data-theme="sombre"] :is(
+  .transactions-page,
+  .trans-page,
+  .budgets-page,
+  .budget-page,
+  .categories-page,
+  .cat-page
+) {
+  background: var(--dark-bg) !important;
+  color: var(--dark-text) !important;
+}
+
+/* Cartes et sections */
+
+:root[data-theme="sombre"] :is(
+  .transactions-page,
+  .trans-page,
+  .budgets-page,
+  .budget-page,
+  .categories-page,
+  .cat-page
+) :is(
+  article,
+  section,
+  .card,
+  .carte,
+  .panel,
+  .panneau,
+  .stat-card,
+  .summary-card
+) {
+  background-color: var(--dark-card);
+  border-color: var(--dark-border);
+  color: var(--dark-text);
+}
+
+/* Titres */
+
+:root[data-theme="sombre"] :is(
+  .transactions-page,
+  .trans-page,
+  .budgets-page,
+  .budget-page,
+  .categories-page,
+  .cat-page
+) :is(
+  h1,
+  h2,
+  h3,
+  h4
+) {
+  color: var(--dark-text) !important;
+}
+
+/* Tableaux */
+
+:root[data-theme="sombre"] :is(
+  .transactions-page,
+  .trans-page,
+  .budgets-page,
+  .budget-page,
+  .categories-page,
+  .cat-page
+) :is(
+  table,
+  thead,
+  tbody,
+  tr,
+  th,
+  td
+) {
+  border-color: var(--dark-border) !important;
+  color: var(--dark-text);
+}
+
+:root[data-theme="sombre"] :is(
+  .transactions-page,
+  .trans-page,
+  .budgets-page,
+  .budget-page,
+  .categories-page,
+  .cat-page
+) thead {
+  background: #30313c !important;
+}
+
+/* ==========================================
+   8. PARAMETRES
+   ========================================== */
+
+:root[data-theme="sombre"] .param-page {
+  --param-fond: #17191f;
+  --param-carte: #252831;
+  --param-texte: #f1edf7;
+  --param-secondaire: #b4b0c0;
+  --param-bordure: #42414e;
+}
+
+:root[data-theme="sombre"] .param-carte {
+  background: var(--dark-card) !important;
+  border-color: var(--dark-border) !important;
+}
+
+:root[data-theme="sombre"] .param-banniere {
+  background: linear-gradient(
+    110deg,
+    #292c35,
+    #302b3d
+  ) !important;
+
+  border-color: var(--dark-border) !important;
+}
+
+/* Corrige le texte vert illisible */
+
+:root[data-theme="sombre"] .param-banniere h2,
+:root[data-theme="sombre"] .param-banniere-texte h2 {
+  color: #f1edf7 !important;
+}
+
+:root[data-theme="sombre"] .param-banniere p,
+:root[data-theme="sombre"] .param-banniere-surtitre {
+  color: #c5b7d9 !important;
+}
+
+:root[data-theme="sombre"] .param-carte h2,
+:root[data-theme="sombre"] .param-carte strong,
+:root[data-theme="sombre"] .param-carte label {
+  color: var(--dark-text) !important;
+}
+
+:root[data-theme="sombre"] .param-carte p,
+:root[data-theme="sombre"] .param-carte small {
+  color: var(--dark-muted) !important;
+}
+
+:root[data-theme="sombre"] .param-etiquette {
+  background: #35313f !important;
+  color: #d7c5f1 !important;
+}
+
+:root[data-theme="sombre"] .param-theme-choix button.actif {
+  background: #79649c !important;
+  border-color: #a38bc8 !important;
+  color: white !important;
+}
+
+:root[data-theme="sombre"] .param-btn-secondaire {
+  color: #c3a9e5 !important;
+  border-color: #79649c !important;
+}
+
+/* ==========================================
+   9. FORMULAIRES
+   ========================================== */
+
+:root[data-theme="sombre"] :is(
+  .mf-modal,
+  .obj-modal,
+  .param-page,
+  .transactions-page,
+  .trans-page,
+  .budgets-page,
+  .budget-page,
+  .categories-page,
+  .cat-page
+) :is(
+  input:not([type="checkbox"]),
+  select,
+  textarea
+) {
+  background: var(--dark-input) !important;
+  color: var(--dark-text) !important;
+  border-color: #575563 !important;
+}
+
+:root[data-theme="sombre"] input::placeholder,
+:root[data-theme="sombre"] textarea::placeholder {
+  color: #9995a8;
+}
+
+/* ==========================================
+   10. BOUTONS PRINCIPAUX
+   ========================================== */
+
+:root[data-theme="sombre"] :is(
+  .mf-bouton-principal,
+  .obj-btn-primary,
+  .param-btn-enregistrer,
+  .stats-periodes button.actif,
+  .obj-filtres button.active
+) {
+  background: #79649c !important;
+  color: #ffffff !important;
+}
+
+:root[data-theme="sombre"] :is(
+  .mf-bouton-principal,
+  .obj-btn-primary,
+  .param-btn-enregistrer
+):hover {
+  background: #9479b9 !important;
+}
+
+/* ==========================================
+   11. MODALES
+   ========================================== */
+
+:root[data-theme="sombre"] .mf-modal,
+:root[data-theme="sombre"] .obj-modal {
+  background: var(--dark-card) !important;
+  color: var(--dark-text) !important;
+  border: 1px solid var(--dark-border);
+}
+
+:root[data-theme="sombre"] .mf-modal h2,
+:root[data-theme="sombre"] .obj-modal h2,
+:root[data-theme="sombre"] .obj-modal label {
+  color: var(--dark-text) !important;
+}
+
+:root[data-theme="sombre"] .mf-modal p,
+:root[data-theme="sombre"] .obj-modal > p {
+  color: var(--dark-muted) !important;
+}
+
+/* ==========================================
+   12. COULEURS D'ACCENT
+   ========================================== */
+
+:root[data-theme="sombre"] :is(
+  .mf-lien,
+  .mf-ajouter-epargne,
+  .obj-goal-footer button
+) {
+  color: var(--dark-lavande) !important;
+}
+
+:root[data-theme="sombre"] :is(
+  .mf-montant-positif,
+  .mf-variation.positive
+) {
+  color: var(--dark-sauge) !important;
+}
+
+:root[data-theme="sombre"] :is(
+  .mf-montant-negatif,
+  .mf-variation.negative,
+  .stats-montant.negatif
+) {
+  color: var(--dark-rouge) !important;
+}
+
+/* ==========================================
+   13. SEPARATEURS
+   ========================================== */
+
+:root[data-theme="sombre"] :is(
+  .mf-transaction,
+  .mf-objectif,
+  .obj-goal,
+  .param-ligne
+) {
+  border-color: var(--dark-border) !important;
+}
+
+/* CATEGORIES — CORRECTION DU FORMULAIRE */
+
+:root[data-theme="sombre"] .cat-page:has(form) form,
+:root[data-theme="sombre"] .categories-page:has(form) form {
+  background: transparent !important;
+  color: #f1edf7 !important;
+}
+
+:root[data-theme="sombre"] .cat-page:has(form) article:has(form),
+:root[data-theme="sombre"] .cat-page:has(form) section:has(form),
+:root[data-theme="sombre"] .categories-page:has(form) article:has(form),
+:root[data-theme="sombre"] .categories-page:has(form) section:has(form) {
+  background: #252831 !important;
+  border-color: #42414e !important;
+  color: #f1edf7 !important;
+}
+/* BUDGETS — CORRECTION DES CARTES CLAIRES */
+
+:root[data-theme="sombre"] .app-budgets .main-content
+  :is(.budget-page, .budgets-page)
+  :is(.budget-global, .budget-resume, .budget-mensuel) {
+  background: #292b36 !important;
+  color: #f1edf7 !important;
+  border-color: #42414e !important;
+}
+
+:root[data-theme="sombre"] .app-budgets .main-content
+  :is(.budget-page, .budgets-page)
+  :is(.budget-alerte, .budget-statut, .budget-controle) {
+  background: #332b3d !important;
+  color: #f1edf7 !important;
+  border-color: #51435f !important;
+}
+
+:root[data-theme="sombre"] .app-budgets .main-content
+  :is(.budget-page, .budgets-page)
+  :is(.budget-conseil, .budgets-conseil) {
+  background: #2d2938 !important;
+  color: #f1edf7 !important;
+  border-color: #51435f !important;
+}

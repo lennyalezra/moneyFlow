@@ -1,6 +1,7 @@
 
 /* ==========================================
-   MONEYFLOW - ACCUEIL COMPACT
+   MONEYFLOW — ACCUEIL
+   Palette sauge, crème et violet
    ========================================== */
 
 .mf-accueil {
@@ -11,7 +12,8 @@
   color: #2b4234;
 }
 
-.mf-accueil * {
+.mf-accueil *,
+.mf-modal * {
   box-sizing: border-box;
 }
 
@@ -22,12 +24,16 @@
 
 .mf-accueil button:focus-visible,
 .mf-modal button:focus-visible,
-.mf-modal input:focus-visible {
+.mf-modal input:focus-visible,
+.mf-sidebar button:focus-visible,
+.mf-sidebar a:focus-visible {
   outline: 2px solid #8ba58e;
-  outline-offset: 2px;
+  outline-offset: 3px;
 }
 
-/* EN-TÊTE */
+/* ==========================================
+   EN-TÊTE
+   ========================================== */
 
 .mf-entete {
   display: flex;
@@ -68,17 +74,20 @@
   border: none;
   border-radius: 10px;
   background: #345a42;
-  color: white;
+  color: #ffffff;
   font-size: 12px;
   font-weight: 700;
-  transition: background 0.2s;
+  cursor: pointer;
+  transition: background 0.2s ease;
 }
 
 .mf-bouton-principal:hover {
   background: #274834;
 }
 
-/* CARTES FINANCIÈRES */
+/* ==========================================
+   CARTES FINANCIÈRES
+   ========================================== */
 
 .mf-cartes-finances {
   display: grid;
@@ -88,29 +97,29 @@
 }
 
 .mf-carte-finance {
-  min-width: 0;
-  min-height: 112px;
-  padding: 15px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 9px;
+  min-width: 0;
+  min-height: 112px;
+  padding: 15px;
   border: 1px solid #edf0e8;
   border-radius: 16px;
-  background: linear-gradient(145deg, #fff, #f3f6ee);
+  background: linear-gradient(145deg, #ffffff, #f3f6ee);
   box-shadow: 0 4px 15px rgba(47, 68, 52, 0.04);
 }
 
 .mf-carte-finance:nth-child(2) {
-  background: linear-gradient(145deg, #fff, #f0f6ec);
+  background: linear-gradient(145deg, #ffffff, #f0f6ec);
 }
 
 .mf-carte-finance:nth-child(3) {
-  background: linear-gradient(145deg, #fff, #fff1ee);
+  background: linear-gradient(145deg, #ffffff, #fff1ee);
 }
 
 .mf-carte-finance.budget {
-  background: linear-gradient(145deg, #fff, #f3eafa);
+  background: linear-gradient(145deg, #ffffff, #f3eafa);
 }
 
 .mf-carte-haut {
@@ -123,12 +132,12 @@
 }
 
 .mf-carte-icone {
-  width: 31px;
-  height: 31px;
-  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
+  width: 31px;
+  height: 31px;
   border-radius: 10px;
   font-size: 19px;
 }
@@ -180,9 +189,9 @@
 }
 
 .mf-variation small {
+  color: #879287;
   font-size: 10px;
   font-weight: 400;
-  color: #879287;
 }
 
 .mf-variation.positive {
@@ -197,14 +206,16 @@
   color: #8a958b;
 }
 
-/* SECTIONS */
+/* ==========================================
+   SECTIONS
+   ========================================== */
 
 .mf-section {
   min-width: 0;
   padding: 16px;
   border: 1px solid #ecefe7;
   border-radius: 17px;
-  background: #fff;
+  background: #ffffff;
   box-shadow: 0 4px 16px rgba(47, 68, 52, 0.04);
 }
 
@@ -237,13 +248,16 @@
   color: #527b58;
   font-size: 11px;
   font-weight: 700;
+  cursor: pointer;
 }
 
 .mf-lien:hover {
   text-decoration: underline;
 }
 
-/* EN UN COUP D'OEIL */
+/* ==========================================
+   EN UN COUP D'ŒIL
+   ========================================== */
 
 .mf-apercu {
   margin-bottom: 14px;
@@ -256,12 +270,12 @@
 }
 
 .mf-analyse {
-  min-width: 0;
-  min-height: 95px;
-  padding: 13px;
   display: flex;
   align-items: flex-start;
   gap: 10px;
+  min-width: 0;
+  min-height: 95px;
+  padding: 13px;
   border-radius: 12px;
 }
 
@@ -278,12 +292,12 @@
 }
 
 .mf-analyse-icone {
-  width: 30px;
-  height: 30px;
-  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
   border-radius: 9px;
   font-size: 18px;
 }
@@ -317,7 +331,9 @@
   line-height: 1.45;
 }
 
-/* OBJECTIFS ET TRANSACTIONS */
+/* ==========================================
+   OBJECTIFS ET TRANSACTIONS
+   ========================================== */
 
 .mf-bas-accueil {
   display: grid;
@@ -353,12 +369,12 @@
 }
 
 .mf-objectif-icone {
-  width: 34px;
-  height: 34px;
-  flex: 0 0 34px;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
   border-radius: 10px;
   background: #e6eedf;
   color: #49784f;
@@ -394,6 +410,7 @@
   background: transparent;
   color: #a6afa4;
   font-size: 19px;
+  cursor: pointer;
 }
 
 .mf-icon-button:hover {
@@ -426,7 +443,7 @@
   height: 100%;
   border-radius: 20px;
   background: linear-gradient(90deg, #a5bf97, #456e4b);
-  transition: width 0.3s;
+  transition: width 0.3s ease;
 }
 
 .mf-ajouter-epargne {
@@ -437,6 +454,7 @@
   color: #537e59;
   font-size: 11px;
   font-weight: 700;
+  cursor: pointer;
 }
 
 .mf-ajouter-epargne:hover {
@@ -453,13 +471,16 @@
   color: #34553d;
   font-size: 12px;
   font-weight: 800;
+  cursor: pointer;
 }
 
 .mf-bouton-ajout:hover {
   background: #d3e3c9;
 }
 
-/* TRANSACTIONS RÉCENTES */
+/* ==========================================
+   TRANSACTIONS RÉCENTES
+   ========================================== */
 
 .mf-liste-transactions {
   display: flex;
@@ -479,12 +500,12 @@
 }
 
 .mf-transaction-icone {
-  width: 34px;
-  height: 34px;
-  flex: 0 0 34px;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
   border-radius: 10px;
   font-size: 18px;
 }
@@ -500,11 +521,11 @@
 }
 
 .mf-transaction-infos {
-  flex: 1;
-  min-width: 0;
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 3px;
+  min-width: 0;
 }
 
 .mf-transaction-infos strong {
@@ -544,11 +565,13 @@
   color: #378452;
 }
 
-/* OBJECTIF VIDE */
+/* ==========================================
+   ÉTAT VIDE ET PAGE OBJECTIFS
+   ========================================== */
 
 .mf-vide {
-  flex: 1;
   display: flex;
+  flex: 1;
   flex-direction: column;
   align-items: center;
   justify-content: center;
@@ -563,8 +586,8 @@
   font-size: 27px;
 }
 
-.mf-vide h3,
-.mf-vide h2 {
+.mf-vide h2,
+.mf-vide h3 {
   margin: 0 0 6px;
   color: #355440;
   font-size: 14px;
@@ -576,8 +599,6 @@
   font-size: 11px;
   line-height: 1.5;
 }
-
-/* PAGE OBJECTIFS - NE PAS COMPRESSER */
 
 .mf-page-objectifs {
   padding-bottom: 35px;
@@ -591,7 +612,7 @@
 
 .mf-grille-objectifs .mf-objectif {
   padding: 20px;
-  background: white;
+  background: #ffffff;
 }
 
 .mf-note-epargne {
@@ -601,7 +622,9 @@
   line-height: 1.6;
 }
 
-/* MODALE DE CRÉATION */
+/* ==========================================
+   MODALE DE CRÉATION
+   ========================================== */
 
 .mf-modal-fond {
   position: fixed;
@@ -618,11 +641,11 @@
 .mf-modal {
   width: 100%;
   max-width: 470px;
-  max-height: 90vh;
+  max-height: 90dvh;
   overflow-y: auto;
   padding: 26px;
   border-radius: 20px;
-  background: white;
+  background: #ffffff;
   color: #2d4434;
   box-shadow: 0 20px 65px rgba(20, 35, 25, 0.2);
 }
@@ -651,6 +674,7 @@
   background: transparent;
   color: #718372;
   font-size: 25px;
+  cursor: pointer;
 }
 
 .mf-modal form {
@@ -672,7 +696,7 @@
   border-radius: 10px;
   background: #fbfcfa;
   color: #304737;
-  font-size: 13px;
+  font-size: 16px;
 }
 
 .mf-modal-actions {
@@ -689,6 +713,7 @@
   background: #f5f7f2;
   color: #4c6652;
   font-size: 12px;
+  cursor: pointer;
 }
 
 .mf-erreur {
@@ -696,7 +721,9 @@
   font-size: 12px;
 }
 
-/* SIDEBAR */
+/* ==========================================
+   SIDEBAR — ORDINATEUR
+   ========================================== */
 
 .mf-sidebar {
   position: relative;
@@ -715,7 +742,7 @@
 
 .mf-logo h2 {
   margin: 0;
-  color: white;
+  color: #ffffff;
   font-size: 24px;
 }
 
@@ -725,17 +752,35 @@
   font-size: 32px;
 }
 
+.mf-sidebar .nav-links {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  position: relative;
+  z-index: 2;
+}
+
 .mf-sidebar .nav-links a {
   display: flex;
   align-items: center;
   gap: 12px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  color: #f1f5ee;
+  text-decoration: none;
+}
+
+.mf-sidebar .nav-links a:hover,
+.mf-sidebar .nav-links a.lien-actif {
+  background: rgba(255, 255, 255, 0.15);
 }
 
 .mf-nav-icone {
-  width: 23px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  flex: 0 0 23px;
+  width: 23px;
   font-size: 19px;
 }
 
@@ -743,11 +788,11 @@
   position: absolute;
   bottom: -75px;
   left: -65px;
-  width: 290px;
-  height: 250px;
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 290px;
+  height: 250px;
   border-radius: 50%;
   background: linear-gradient(145deg, #9aa98b, #dfc9a7);
   color: rgba(255, 255, 255, 0.45);
@@ -755,7 +800,13 @@
   pointer-events: none;
 }
 
-/* MODE SOMBRE */
+.mf-sidebar .menu-toggle {
+  display: none;
+}
+
+/* ==========================================
+   MODE SOMBRE
+   ========================================== */
 
 [data-theme="sombre"] .mf-accueil {
   color: #e5eee5;
@@ -777,6 +828,21 @@
   color: #e5eee5;
 }
 
+[data-theme="sombre"] .mf-carte-finance > strong.mf-negatif {
+  color: #e4a09b;
+}
+
+[data-theme="sombre"] .mf-objectif,
+[data-theme="sombre"] .mf-grille-objectifs .mf-objectif {
+  background: #304538;
+  border-color: #405748;
+}
+
+[data-theme="sombre"] .mf-objectif-contenu p,
+[data-theme="sombre"] .mf-transaction-infos small {
+  color: #b8c8b9;
+}
+
 [data-theme="sombre"] .mf-analyse.alerte {
   background: #493833;
 }
@@ -794,31 +860,70 @@
   color: #e0e9df;
 }
 
+[data-theme="sombre"] .mf-modal input {
+  background: #1f3027;
+  border-color: #4b6351;
+  color: #e5eee5;
+}
+
+[data-theme="sombre"] .mf-modal label,
+[data-theme="sombre"] .mf-modal-entete h2 {
+  color: #e5eee5;
+}
+
 /* ==========================================
-   ACCUEIL SUR UN SEUL ÉCRAN - ORDINATEUR
+   ORDINATEUR — DISPOSITION
    ========================================== */
 
-@media (min-width: 1100px) and (min-height: 650px) {
-
-  .app:has(> .main-content > .mf-accueil:not(.mf-page-objectifs)) {
-    height: 100vh;
+@media (min-width: 900px) {
+  .app:has(.mf-accueil:not(.mf-page-objectifs)) {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    width: 100%;
+    height: 100dvh;
     min-height: 0;
     overflow: hidden;
   }
 
+  .app:has(.mf-accueil:not(.mf-page-objectifs)) > .sidebar {
+    display: flex;
+    flex-direction: column;
+    flex: 0 0 220px;
+    width: 220px;
+    min-width: 220px;
+    max-width: 220px;
+    height: 100%;
+  }
+
+  .app:has(.mf-accueil:not(.mf-page-objectifs)) > .main-content {
+    display: block;
+    flex: 1;
+    width: auto;
+    min-width: 0;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 15px 20px;
+  }
+}
+
+/* ==========================================
+   ACCUEIL COMPACT — GRAND ORDINATEUR
+   ========================================== */
+
+@media (min-width: 1100px) and (min-height: 650px) {
   .app:has(> .main-content > .mf-accueil:not(.mf-page-objectifs))
   > .main-content {
-    height: 100vh;
-    min-height: 0;
     overflow: hidden;
     padding: 15px 22px;
   }
 
   .mf-accueil:not(.mf-page-objectifs) {
-    height: 100%;
     display: grid;
     grid-template-rows: auto auto auto minmax(0, 1fr);
     gap: clamp(8px, 1.3vh, 14px);
+    height: 100%;
   }
 
   .mf-accueil:not(.mf-page-objectifs) .mf-entete,
@@ -843,25 +948,36 @@
   }
 
   .mf-accueil:not(.mf-page-objectifs) .mf-bas-accueil {
-    min-height: 0;
     height: 100%;
-    align-items: stretch;
+    min-height: 0;
+    overflow: hidden;
   }
 
   .mf-accueil:not(.mf-page-objectifs) .mf-objectifs-section,
   .mf-accueil:not(.mf-page-objectifs) .mf-transactions-section {
-    min-height: 0;
     height: 100%;
+    min-height: 0;
     overflow-y: auto;
     scrollbar-width: thin;
   }
 
-  .mf-accueil:not(.mf-page-objectifs) .mf-bouton-ajout {
-    margin-top: auto;
+  .mf-accueil:not(.mf-page-objectifs) .mf-objectifs-section .mf-vide {
+    flex: 1;
+    min-height: 0;
+    justify-content: flex-end;
+    padding: 0 8px 12px;
+  }
+
+  .mf-accueil:not(.mf-page-objectifs) .mf-objectifs-section .mf-bouton-ajout {
+    flex-shrink: 0;
+    margin-top: 0;
+    margin-bottom: clamp(20px, 5vh, 45px);
   }
 }
 
-/* ÉCRANS MOINS HAUTS */
+/* ==========================================
+   ORDINATEUR PEU HAUT
+   ========================================== */
 
 @media (min-width: 1100px) and (max-height: 749px) {
   .mf-entete h1 {
@@ -897,153 +1013,277 @@
   }
 }
 
-/* RESPONSIVE */
+/* ==========================================
+   TABLETTES
+   ========================================== */
 
-@media (max-width: 1099px) {
+@media (min-width: 900px) and (max-width: 1099px) {
   .mf-cartes-finances {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .mf-analyses {
-    grid-template-columns: 1fr;
-  }
-
+  .mf-analyses,
   .mf-bas-accueil {
     grid-template-columns: 1fr;
   }
 }
 
-@media (max-width: 700px) {
-  .mf-entete {
-    align-items: flex-start;
-    flex-wrap: wrap;
-  }
+/* ==========================================
+   MOBILE — STRUCTURE ET MENU
+   ========================================== */
 
-  .mf-entete h1 {
-    font-size: 24px;
-  }
-
-  .mf-carte-finance > strong {
-    white-space: normal;
-    overflow-wrap: anywhere;
-  }
-
-  .mf-grille-objectifs {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 420px) {
-  .mf-cartes-finances {
-    grid-template-columns: 1fr;
-  }
-
-  .mf-transaction-icone {
-    display: none;
-  }
-}
-
-/* CORRECTION : SIDEBAR À GAUCHE */
-
-@media (min-width: 900px) {
-  .app:has(.mf-accueil:not(.mf-page-objectifs)) {
-    display: flex;
-    flex-direction: row;
-    align-items: stretch;
+@media (max-width: 899px) {
+  html,
+  body,
+  #root {
     width: 100%;
-    height: 100vh;
-    min-height: 0;
-    overflow: hidden;
+    min-height: 100%;
   }
 
-  .app:has(.mf-accueil:not(.mf-page-objectifs)) > .sidebar {
+  body {
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  .app {
     display: flex;
     flex-direction: column;
-    width: 220px;
-    min-width: 220px;
-    max-width: 220px;
-    height: 100vh;
-    min-height: 0;
-    flex: 0 0 220px;
+    width: 100%;
+    height: auto;
+    min-height: 100dvh;
+    overflow: visible;
   }
 
-  .app:has(.mf-accueil:not(.mf-page-objectifs)) > .main-content {
-    display: block;
-    flex: 1;
-    width: auto;
+  .app > .sidebar.mf-sidebar {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    flex: 0 0 auto;
+    width: 100%;
     min-width: 0;
-    height: 100vh;
+    max-width: none;
+    height: auto;
+    min-height: 0;
+    padding: 12px 16px;
     overflow: hidden;
-    padding: 15px 20px;
+    z-index: 20;
+  }
+
+  .mf-sidebar .mf-logo {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    min-height: 48px;
+    margin: 0;
+    padding: 0 50px 0 0;
+  }
+
+  .mf-sidebar .mf-logo-symbole {
+    margin: 0;
+    font-size: 27px;
+  }
+
+  .mf-sidebar .mf-logo h2 {
+    margin: 0;
+    font-size: 21px;
   }
 
   .mf-sidebar .menu-toggle {
-    display: none;
+    position: absolute;
+    top: 15px;
+    right: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+    font-size: 22px;
+    cursor: pointer;
+    z-index: 30;
   }
 
-  .mf-sidebar .nav-links {
+  /* Fermé par défaut */
+  .app > .mf-sidebar .nav-links {
+    display: none;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Ouvert après clic */
+  .app > .mf-sidebar .nav-links.ouvert {
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 6px;
+    margin-top: 12px;
   }
 
   .mf-sidebar .nav-links a {
-    text-decoration: none;
-    color: #f1f5ee;
-    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    min-height: 44px;
+    padding: 12px 14px;
     border-radius: 10px;
+    color: #f1f5ee;
+    font-size: 15px;
+    text-decoration: none;
   }
 
   .mf-sidebar .nav-links a:hover,
   .mf-sidebar .nav-links a.lien-actif {
     background: rgba(255, 255, 255, 0.15);
   }
+
+  .mf-sidebar .mf-sidebar-decoration {
+    display: none;
+  }
+
+  .app > .main-content {
+    display: block;
+    flex: 1 1 auto;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    height: auto;
+    min-height: 0;
+    padding: 16px;
+    overflow: visible;
+  }
+
+  .mf-accueil {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+  }
+
+  .mf-entete {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+
+  .mf-entete h1 {
+    font-size: 25px;
+  }
+
+  .mf-entete p {
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .mf-cartes-finances {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .mf-carte-finance {
+    min-height: 125px;
+    padding: 15px;
+  }
+
+  .mf-carte-finance > strong {
+    font-size: 22px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .mf-analyses,
+  .mf-bas-accueil,
+  .mf-grille-objectifs {
+    grid-template-columns: 1fr;
+  }
+
+  .mf-analyse h3 {
+    font-size: 14px;
+  }
+
+  .mf-analyse p {
+    font-size: 13px;
+  }
+
+  .mf-section-entete h2 {
+    font-size: 17px;
+  }
+
+  .mf-section-entete p {
+    font-size: 13px;
+  }
+
+  .mf-transaction-infos strong,
+  .mf-objectif-haut strong {
+    font-size: 14px;
+  }
+
+  .mf-transaction-infos small,
+  .mf-objectif-contenu p {
+    font-size: 12px;
+  }
+
+  .mf-lien,
+  .mf-ajouter-epargne {
+    font-size: 13px;
+  }
 }
-/* Ajustement final de l'Accueil */
 
-@media (min-width: 900px) {
+/* ==========================================
+   PETITS TÉLÉPHONES
+   ========================================== */
 
-  .mf-accueil:not(.mf-page-objectifs) .mf-bas-accueil {
-    min-height: 0;
-    overflow: hidden;
+@media (max-width: 480px) {
+  .app > .main-content {
+    padding: 12px;
   }
 
-  .mf-accueil:not(.mf-page-objectifs) .mf-objectifs-section {
-    display: flex;
-    flex-direction: column;
-    min-height: 0;
+  .mf-cartes-finances {
+    grid-template-columns: 1fr;
   }
 
-  .mf-accueil:not(.mf-page-objectifs) .mf-vide {
-    flex: 1;
-    min-height: 0;
-    padding: 8px;
+  .mf-carte-finance {
+    min-height: 110px;
   }
 
-  .mf-accueil:not(.mf-page-objectifs) .mf-bouton-ajout {
-    flex-shrink: 0;
-    margin-top: 8px;
-  }
-}
-
-/* CENTRER LE CONTENU DE MES OBJECTIFS */
-
-@media (min-width: 900px) {
-  .mf-accueil:not(.mf-page-objectifs) .mf-objectifs-section {
-    display: flex;
-    flex-direction: column;
+  .mf-carte-finance > strong {
+    font-size: 24px;
   }
 
-  .mf-accueil:not(.mf-page-objectifs) .mf-objectifs-section .mf-vide {
-    flex: 1;
-    min-height: 0;
-    justify-content: flex-end;
-    padding: 0 8px 12px;
+  .mf-section {
+    padding: 14px;
   }
 
-  .mf-accueil:not(.mf-page-objectifs) .mf-objectifs-section .mf-bouton-ajout {
-    margin-top: 0;
-    margin-bottom: clamp(20px, 5vh, 45px);
-    flex-shrink: 0;
+  .mf-section-entete {
+    flex-wrap: wrap;
+  }
+
+  .mf-section-entete .mf-lien {
+    flex-shrink: 1;
+  }
+
+  .mf-transaction {
+    gap: 8px;
+  }
+
+  .mf-transaction-montant strong {
+    font-size: 12px;
+  }
+
+  .mf-modal-fond {
+    padding: 12px;
+  }
+
+  .mf-modal {
+    padding: 18px;
+  }
+
+  .mf-modal-actions {
+    flex-wrap: wrap;
   }
 }

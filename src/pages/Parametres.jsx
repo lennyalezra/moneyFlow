@@ -2,848 +2,693 @@
 import { useEffect, useState } from "react";
 import "./Parametres.css";
 
-const ONGLETS = [
-  { id: "compte", titre: "Compte" },
-  { id: "apparence", titre: "Apparence" },
-  { id: "notifications", titre: "Notifications" },
-  { id: "preferences", titre: "Préférences" },
-  { id: "donnees", titre: "Données" },
-  { id: "securite", titre: "Sécurité" },
-];
+const CLE_PARAMETRES = "moneyflow-parametres";
 
-function lirePreference(cle, valeurDefaut) {
+const PARAMETRES_DEFAUT = {
+  nom: "",
+  email: "",
+  langue: "fr",
+  devise: "EUR",
+  premierJour: "lundi",
+  theme: "clair",
+  notifications: true,
+};
+
+function lireParametres() {
   try {
-    return localStorage.getItem(cle) ?? valeurDefaut;
-  } catch {
-    return valeurDefaut;
-  }
-}
+    const sauvegarde = localStorage.getItem(CLE_PARAMETRES);
 
-function lireNotification(cle, valeurDefaut) {
-  const valeur = lirePreference(cle, null);
-  return valeur === null ? valeurDefaut : valeur === "true";
-}
-
-function echapperCSV(valeur) {
-  return `"${String(valeur ?? "").replace(/"/g, '""')}"`;
-}
-
-function lireCSV(contenu) {
-  const lignes = [];
-  let ligne = [];
-  let cellule = "";
-  let entreGuillemets = false;
-
-  for (let i = 0; i < contenu.length; i++) {
-    const caractere = contenu[i];
-
-    if (caractere === '"') {
-      if (entreGuillemets && contenu[i + 1] === '"') {
-        cellule += '"';
-        i++;
-      } else {
-        entreGuillemets = !entreGuillemets;
-      }
-    } else if (caractere === ";" && !entreGuillemets) {
-      ligne.push(cellule);
-      cellule = "";
-    } else if (
-      (caractere === "\n" || caractere === "\r") &&
-      !entreGuillemets
-    ) {
-      if (
-        caractere === "\r" &&
-        contenu[i + 1] === "\n"
-      ) {
-        i++;
-      }
-
-      ligne.push(cellule);
-
-      if (ligne.some((valeur) => valeur.trim() !== "")) {
-        lignes.push(ligne);
-      }
-
-      ligne = [];
-      cellule = "";
-    } else {
-      cellule += caractere;
+    if (sauvegarde) {
+      return {
+        ...PARAMETRES_DEFAUT,
+        ...JSON.parse(sauvegarde),
+      };
     }
+  } catch (erreur) {
+    console.error("Erreur de chargement des paramètres :", erreur);
   }
 
-  if (entreGuillemets) {
-    throw new Error("Le fichier CSV contient des guillemets incorrects.");
-  }
-
-  ligne.push(cellule);
-
-  if (ligne.some((valeur) => valeur.trim() !== "")) {
-    lignes.push(ligne);
-  }
-
-  return lignes;
+  return { ...PARAMETRES_DEFAUT };
 }
 
-function dateValide(date) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-    return false;
-  }
-
-  const [annee, mois, jour] = date.split("-").map(Number);
-  const resultat = new Date(Date.UTC(annee, mois - 1, jour));
-
-  return (
-    resultat.getUTCFullYear() === annee &&
-    resultat.getUTCMonth() === mois - 1 &&
-    resultat.getUTCDate() === jour
-  );
-}
-
-function Parametres({
-  transactions = [],
-  setTransactions,
-  setPrenomUtilisateur,
-}) {
-  const [ongletActif, setOngletActif] = useState("compte");
-
-  const [nom, setNom] = useState(() =>
-    lirePreference("moneyflow-nom", "")
-  );
-
-  const [theme, setTheme] = useState(() =>
-    lirePreference("moneyflow-theme", "clair")
-  );
-
-  const [devise, setDevise] = useState(() =>
-    lirePreference("moneyflow-devise", "EUR")
-  );
-
-  const [formatDate, setFormatDate] = useState(() =>
-    lirePreference("moneyflow-format-date", "fr")
-  );
-
-  const [alertesBudget, setAlertesBudget] = useState(() =>
-    lireNotification("moneyflow-alertes-budget", true)
-  );
-
-  const [resumeHebdo, setResumeHebdo] = useState(() =>
-    lireNotification("moneyflow-resume-hebdo", false)
-  );
+function Parametres({ setPrenomUtilisateur }) {
+  const [parametres, setParametres] = useState(lireParametres);
+  const [formulaire, setFormulaire] = useState(lireParametres);
 
   const [message, setMessage] = useState("");
-  const [confirmation, setConfirmation] = useState("");
-  const [fichierImport, setFichierImport] = useState(null);
+  const [erreur, setErreur] = useState("");
+  const [confirmationSuppression, setConfirmationSuppression] =
+    useState(false);
 
-  const initiale = nom.trim().charAt(0).toUpperCase() || "U";
-
-  useEffect(() => {
-    document.documentElement.dataset.theme = theme;
-    localStorage.setItem("moneyflow-theme", theme);
-  }, [theme]);
+  const nomAffiche = parametres.nom.trim() || "Utilisateur";
 
   useEffect(() => {
-    localStorage.setItem("moneyflow-devise", devise);
-  }, [devise]);
+    document.title = "Paramètres | MoneyFlow";
+  }, []);
 
+  // Applique le thème à toute l'application.
   useEffect(() => {
-    localStorage.setItem("moneyflow-format-date", formatDate);
-  }, [formatDate]);
+    document.documentElement.dataset.theme =
+      formulaire.theme === "sombre" ? "sombre" : "clair";
+  }, [formulaire.theme]);
 
-  useEffect(() => {
-    localStorage.setItem(
-      "moneyflow-alertes-budget",
-      String(alertesBudget)
-    );
-  }, [alertesBudget]);
+  function modifierChamp(champ, valeur) {
+    setFormulaire((precedent) => ({
+      ...precedent,
+      [champ]: valeur,
+    }));
 
-  useEffect(() => {
-    localStorage.setItem(
-      "moneyflow-resume-hebdo",
-      String(resumeHebdo)
-    );
-  }, [resumeHebdo]);
-
-  function changerOnglet(id) {
-    setOngletActif(id);
     setMessage("");
+    setErreur("");
   }
 
-  function enregistrerNom(event) {
+  function enregistrer(event) {
     event.preventDefault();
 
-    const nouveauNom = nom.trim();
+    const nom = formulaire.nom.trim();
+    const email = formulaire.email.trim();
 
-    if (!nouveauNom) {
-      setMessage("Veuillez saisir un nom.");
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setErreur("L'adresse e-mail n'est pas valide.");
+      setMessage("");
       return;
     }
 
-    localStorage.setItem("moneyflow-nom", nouveauNom);
-    setPrenomUtilisateur?.(nouveauNom);
-    setNom(nouveauNom);
-    setMessage("Profil enregistré avec succès.");
-  }
-
-  function exporterCSV() {
-    if (transactions.length === 0) {
-      setMessage("Aucune transaction à exporter.");
-      return;
-    }
-
-    const lignes = [
-      ["Nom", "Catégorie", "Type", "Montant", "Date"],
-      ...transactions.map((transaction) => [
-        transaction.nom,
-        transaction.categorie,
-        Number(transaction.montant) < 0
-          ? "Dépense"
-          : "Revenu",
-        transaction.montant,
-        transaction.date,
-      ]),
-    ];
-
-    const contenu = lignes
-      .map((ligne) => ligne.map(echapperCSV).join(";"))
-      .join("\r\n");
-
-    const blob = new Blob(
-      ["\uFEFF" + contenu],
-      { type: "text/csv;charset=utf-8" }
-    );
-
-    const url = URL.createObjectURL(blob);
-    const lien = document.createElement("a");
-
-    lien.href = url;
-    lien.download = "moneyflow-transactions.csv";
-
-    document.body.appendChild(lien);
-    lien.click();
-    lien.remove();
-
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-
-    setMessage("Export CSV préparé.");
-  }
-
-  async function importerCSV() {
-    if (!fichierImport) {
-      setMessage("Sélectionne d'abord un fichier CSV.");
-      return;
-    }
-
-    if (
-      !fichierImport.name.toLowerCase().endsWith(".csv") ||
-      fichierImport.size > 2 * 1024 * 1024
-    ) {
-      setMessage("Choisis un fichier CSV de moins de 2 Mo.");
-      return;
-    }
+    const nouveauxParametres = {
+      ...formulaire,
+      nom,
+      email,
+    };
 
     try {
-      const contenu = (await fichierImport.text()).replace(
-        /^\uFEFF/,
-        ""
+      localStorage.setItem(
+        CLE_PARAMETRES,
+        JSON.stringify(nouveauxParametres)
       );
 
-      const lignes = lireCSV(contenu);
+      // Synchronise le thème avec App.jsx.
+      document.documentElement.dataset.theme =
+        nouveauxParametres.theme === "sombre"
+          ? "sombre"
+          : "clair";
 
-      if (lignes.length < 2) {
-        throw new Error(
-          "Le fichier ne contient aucune transaction."
-        );
+      window.dispatchEvent(
+        new Event("moneyflow-theme-change")
+      );
+
+      // Met à jour le prénom sur l'accueil.
+      localStorage.setItem("moneyflow-nom", nom);
+
+      if (setPrenomUtilisateur) {
+        setPrenomUtilisateur(nom);
       }
 
-      const entetes = lignes[0];
+      setParametres(nouveauxParametres);
+      setFormulaire(nouveauxParametres);
 
-      if (
-        entetes.length !== 5 ||
-        entetes.join(";") !==
-          "Nom;Catégorie;Type;Montant;Date"
-      ) {
-        throw new Error(
-          "Le fichier doit respecter le format CSV de MoneyFlow."
-        );
-      }
-
-      const nouvellesTransactions = lignes
-        .slice(1)
-        .map((cellules, index) => {
-          if (cellules.length !== 5) {
-            throw new Error(
-              `Nombre de colonnes incorrect à la ligne ${index + 2}.`
-            );
-          }
-
-          const [
-            nomCSV,
-            categorieCSV,
-            typeCSV,
-            montantTexte,
-            dateCSV,
-          ] = cellules;
-
-          const montant = Number(montantTexte);
-
-          const montantCorrect =
-            Number.isFinite(montant) &&
-            montant !== 0 &&
-            (
-              (typeCSV === "Dépense" && montant < 0) ||
-              (typeCSV === "Revenu" && montant > 0)
-            );
-
-          if (
-            !nomCSV.trim() ||
-            !categorieCSV.trim() ||
-            !montantCorrect ||
-            !dateValide(dateCSV)
-          ) {
-            throw new Error(
-              `Transaction invalide à la ligne ${index + 2}.`
-            );
-          }
-
-          return {
-            id:
-              typeof crypto !== "undefined" &&
-              crypto.randomUUID
-                ? crypto.randomUUID()
-                : `${Date.now()}-${index}-${Math.random()}`,
-            nom: nomCSV.trim(),
-            categorie: categorieCSV.trim(),
-            montant,
-            date: dateCSV,
-          };
-        });
-
-      const accord = window.confirm(
-        `Importer ${nouvellesTransactions.length} transaction(s) ? Elles seront ajoutées aux transactions existantes.`
-      );
-
-      if (!accord) return;
-
-      setTransactions((anciennes) => [
-        ...anciennes,
-        ...nouvellesTransactions,
-      ]);
-
-      setFichierImport(null);
-
-      setMessage(
-        `${nouvellesTransactions.length} transaction(s) importée(s).`
-      );
-    } catch (erreur) {
-      setMessage(
-        erreur.message || "Impossible d'importer ce fichier."
-      );
+      setMessage("Tes préférences ont été enregistrées.");
+      setErreur("");
+    } catch (error) {
+      setErreur("Impossible d'enregistrer les préférences.");
+      setMessage("");
     }
   }
 
-  function reinitialiserTransactions() {
-    if (confirmation !== "REINITIALISER") {
+  // EXPORTATION DES DONNÉES
+  function exporterDonnees() {
+    try {
+      const donnees = {};
+
+      for (let index = 0; index < localStorage.length; index++) {
+        const cle = localStorage.key(index);
+
+        if (
+          cle &&
+          (cle.toLowerCase().includes("moneyflow") ||
+            cle === "transactions" ||
+            cle === "categories" ||
+            cle === "budgets")
+        ) {
+          const valeur = localStorage.getItem(cle);
+
+          try {
+            donnees[cle] = JSON.parse(valeur);
+          } catch {
+            donnees[cle] = valeur;
+          }
+        }
+      }
+
+      const contenu = JSON.stringify(
+        {
+          application: "MoneyFlow",
+          exporteLe: new Date().toISOString(),
+          donnees,
+        },
+        null,
+        2
+      );
+
+      const fichier = new Blob([contenu], {
+        type: "application/json",
+      });
+
+      const url = URL.createObjectURL(fichier);
+      const lien = document.createElement("a");
+
+      lien.href = url;
+      lien.download = `moneyflow-sauvegarde-${
+        new Date().toISOString().slice(0, 10)
+      }.json`;
+
+      document.body.appendChild(lien);
+      lien.click();
+      lien.remove();
+
+      URL.revokeObjectURL(url);
+
+      setMessage("Ta sauvegarde MoneyFlow a été téléchargée.");
+      setErreur("");
+    } catch (error) {
+      setErreur("L'exportation des données a échoué.");
+      setMessage("");
+    }
+  }
+
+  // SUPPRESSION DES DONNÉES
+  function supprimerDonnees() {
+    if (!confirmationSuppression) {
+      setConfirmationSuppression(true);
       return;
     }
 
-    const accord = window.confirm(
-      "Supprimer définitivement toutes tes transactions ?"
+    const confirmation = window.confirm(
+      "Attention : cette action supprimera les données MoneyFlow enregistrées dans ce navigateur. Continuer ?"
     );
 
-    if (!accord) return;
+    if (!confirmation) {
+      setConfirmationSuppression(false);
+      return;
+    }
 
-    setTransactions([]);
-    setConfirmation("");
-    setMessage("Toutes les transactions ont été supprimées.");
+    const clesASupprimer = [];
+
+    for (let index = 0; index < localStorage.length; index++) {
+      const cle = localStorage.key(index);
+
+      if (
+        cle &&
+        (cle.toLowerCase().includes("moneyflow") ||
+          cle === "transactions" ||
+          cle === "categories" ||
+          cle === "budgets")
+      ) {
+        clesASupprimer.push(cle);
+      }
+    }
+
+    clesASupprimer.forEach((cle) => {
+      localStorage.removeItem(cle);
+    });
+
+    document.documentElement.dataset.theme = "clair";
+    setConfirmationSuppression(false);
+
+    window.location.reload();
   }
 
   return (
-    <section className="parametres-page">
-      <header className="parametres-header">
-        <h1>Paramètres</h1>
+    <div
+      className={`param-page ${
+        formulaire.theme === "sombre" ? "param-sombre" : ""
+      }`}
+    >
+      {/* EN-TÊTE */}
+
+      <header className="param-entete">
+        <span className="param-sur-titre">MES FINANCES</span>
+
+        <h1>
+          Paramètres <span>◇</span>
+        </h1>
+
         <p>
-          Gère ton compte, tes préférences et tes données.
+          Gère ton compte, personnalise ton expérience et
+          retrouve tes données.
         </p>
       </header>
 
-      <nav
-        className="parametres-onglets"
-        aria-label="Onglets des paramètres"
-      >
-        {ONGLETS.map((onglet) => (
-          <button
-            key={onglet.id}
-            type="button"
-            className={
-              ongletActif === onglet.id
-                ? "parametres-onglet actif"
-                : "parametres-onglet"
-            }
-            onClick={() => changerOnglet(onglet.id)}
-            aria-pressed={ongletActif === onglet.id}
-          >
-            {onglet.titre}
-          </button>
-        ))}
-      </nav>
+      {/* BANNIÈRE PROFIL */}
 
-      <div className="parametres-contenu">
+      <section className="param-banniere">
+        <div className="param-avatar">
+          <span>♙</span>
+        </div>
+
+        <div className="param-banniere-texte">
+          <span className="param-banniere-surtitre">
+            MON ESPACE PERSONNEL
+          </span>
+
+          <h2>Bonjour {nomAffiche} !</h2>
+
+          <p>Bienvenue dans tes paramètres MoneyFlow.</p>
+        </div>
+
+        <button
+          type="button"
+          className="param-banniere-bouton"
+          onClick={() =>
+            document.getElementById("param-nom")?.focus()
+          }
+        >
+          ✎ Modifier le profil
+        </button>
+
+        <span className="param-banniere-deco">✧</span>
+      </section>
+
+      {/* FORMULAIRE PRINCIPAL */}
+
+      <form
+        id="param-formulaire-principal"
+        className="param-grille"
+        onSubmit={enregistrer}
+      >
         {/* COMPTE */}
 
-        {ongletActif === "compte" && (
-          <div className="parametres-carte">
-            <div className="parametres-carte-titre">
-              <span className="parametres-icone">
-                👤
-              </span>
+        <section className="param-carte">
+          <div className="param-carte-entete">
+            <div className="param-icone">♙</div>
 
-              <div>
-                <h2>Mon compte</h2>
-                <p>Personnalise ton espace MoneyFlow.</p>
-              </div>
+            <div>
+              <h2>Compte</h2>
+              <p>Informations de ton profil.</p>
             </div>
+          </div>
 
-            <div className="parametres-profil">
-              <div className="parametres-avatar">
-                {initiale}
-              </div>
+          <div className="param-ligne">
+            <div className="param-ligne-label">
+              <span className="param-petit-icone">♙</span>
 
-              <div>
-                <h3>{nom.trim() || "Utilisateur"}</h3>
-                <p>Mon espace personnel</p>
-              </div>
-            </div>
-
-            <form
-              className="parametres-formulaire"
-              onSubmit={enregistrerNom}
-            >
-              <label htmlFor="nom-utilisateur">
+              <label htmlFor="param-nom">
                 Nom d'utilisateur
               </label>
+            </div>
 
-              <input
-                id="nom-utilisateur"
-                type="text"
-                value={nom}
-                maxLength={40}
-                placeholder="Ton prénom ou ton pseudo"
-                onChange={(event) =>
-                  setNom(event.target.value)
-                }
-                required
-              />
-
-              <button
-                className="parametres-bouton"
-                type="submit"
-              >
-                Enregistrer les modifications
-              </button>
-            </form>
+            <input
+              id="param-nom"
+              type="text"
+              maxLength={40}
+              placeholder="Ton nom"
+              value={formulaire.nom}
+              onChange={(event) =>
+                modifierChamp("nom", event.target.value)
+              }
+            />
           </div>
-        )}
 
-        {/* APPARENCE */}
+          <div className="param-ligne">
+            <div className="param-ligne-label">
+              <span className="param-petit-icone">✉</span>
 
-        {ongletActif === "apparence" && (
-          <div className="parametres-carte">
-            <div className="parametres-carte-titre">
-              <span className="parametres-icone">
-                ◐
-              </span>
-
-              <div>
-                <h2>Apparence</h2>
-                <p>Choisis le thème de ton application.</p>
-              </div>
-            </div>
-
-            <div className="parametres-themes">
-              {[
-                {
-                  id: "clair",
-                  titre: "Mode clair",
-                  symbole: "☀",
-                  description: "Sauge et crème",
-                },
-                {
-                  id: "sombre",
-                  titre: "Mode sombre",
-                  symbole: "☾",
-                  description: "Interface sombre",
-                },
-                {
-                  id: "systeme",
-                  titre: "Automatique",
-                  symbole: "◐",
-                  description: "Selon ton appareil",
-                },
-              ].map((option) => (
-                <button
-                  type="button"
-                  key={option.id}
-                  className={
-                    theme === option.id
-                      ? "parametres-theme actif"
-                      : "parametres-theme"
-                  }
-                  onClick={() => setTheme(option.id)}
-                  aria-pressed={theme === option.id}
-                >
-                  <span className="parametres-theme-symbole">
-                    {option.symbole}
-                  </span>
-
-                  <strong>{option.titre}</strong>
-                  <small>{option.description}</small>
-
-                  <span>
-                    {theme === option.id
-                      ? "✓ Sélectionné"
-                      : "Choisir"}
-                  </span>
-                </button>
-              ))}
-            </div>
-
-            <div className="parametres-info">
-              <strong>Préférence sauvegardée</strong>
-              <p>
-                Le thème choisi est enregistré dans ton
-                navigateur. Son affichage dépend des styles
-                prévus dans ton CSS.
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* NOTIFICATIONS */}
-
-        {ongletActif === "notifications" && (
-          <div className="parametres-carte">
-            <div className="parametres-carte-titre">
-              <span className="parametres-icone">
-                🔔
-              </span>
-
-              <div>
-                <h2>Notifications</h2>
-                <p>
-                  Choisis les informations que tu souhaites
-                  recevoir.
-                </p>
-              </div>
-            </div>
-
-            <div className="parametres-option">
-              <div>
-                <h3>Alertes de budget</h3>
-                <p>
-                  Préférence pour recevoir des alertes
-                  lorsque tes dépenses approchent du budget.
-                </p>
-              </div>
-
-              <label className="parametres-switch">
-                <input
-                  type="checkbox"
-                  checked={alertesBudget}
-                  onChange={(event) =>
-                    setAlertesBudget(event.target.checked)
-                  }
-                  aria-label="Activer les alertes de budget"
-                />
-
-                <span className="parametres-switch-slider" />
+              <label htmlFor="param-email">
+                Adresse e-mail
               </label>
             </div>
 
-            <div className="parametres-option">
-              <div>
-                <h3>Résumé hebdomadaire</h3>
-                <p>
-                  Préférence pour un récapitulatif de tes
-                  revenus et dépenses chaque semaine.
-                </p>
-              </div>
-
-              <label className="parametres-switch">
-                <input
-                  type="checkbox"
-                  checked={resumeHebdo}
-                  onChange={(event) =>
-                    setResumeHebdo(event.target.checked)
-                  }
-                  aria-label="Activer le résumé hebdomadaire"
-                />
-
-                <span className="parametres-switch-slider" />
-              </label>
-            </div>
-
-            <div className="parametres-info">
-              <strong>Fonctionnalité en préparation</strong>
-              <p>
-                Ces préférences sont sauvegardées, mais les
-                notifications automatiques ne sont pas encore
-                programmées.
-              </p>
-            </div>
+            <input
+              id="param-email"
+              type="email"
+              placeholder="exemple@email.fr"
+              value={formulaire.email}
+              onChange={(event) =>
+                modifierChamp("email", event.target.value)
+              }
+            />
           </div>
-        )}
+
+          <div className="param-ligne">
+            <div className="param-ligne-label">
+              <span className="param-petit-icone">◎</span>
+
+              <label htmlFor="param-langue">Langue</label>
+            </div>
+
+            <select
+              id="param-langue"
+              value={formulaire.langue}
+              onChange={(event) =>
+                modifierChamp("langue", event.target.value)
+              }
+            >
+              <option value="fr">Français</option>
+            </select>
+          </div>
+
+          <p className="param-note">
+            Le profil est enregistré localement. Il ne s'agit
+            pas encore d'un compte connecté.
+          </p>
+        </section>
 
         {/* PRÉFÉRENCES */}
 
-        {ongletActif === "preferences" && (
-          <div className="parametres-carte">
-            <div className="parametres-carte-titre">
-              <span className="parametres-icone">
-                ⚙
-              </span>
+        <section className="param-carte">
+          <div className="param-carte-entete">
+            <div className="param-icone">☷</div>
 
-              <div>
-                <h2>Préférences</h2>
-                <p>
-                  Personnalise l'affichage de tes finances.
-                </p>
-              </div>
-            </div>
-
-            <div className="parametres-preference">
-              <label htmlFor="devise">
-                Devise préférée
-              </label>
-
-              <select
-                id="devise"
-                value={devise}
-                onChange={(event) =>
-                  setDevise(event.target.value)
-                }
-              >
-                <option value="EUR">Euro (€)</option>
-                <option value="USD">
-                  Dollar américain ($)
-                </option>
-                <option value="GBP">
-                  Livre sterling (£)
-                </option>
-              </select>
-            </div>
-
-            <div className="parametres-preference">
-              <label htmlFor="format-date">
-                Format de date
-              </label>
-
-              <select
-                id="format-date"
-                value={formatDate}
-                onChange={(event) =>
-                  setFormatDate(event.target.value)
-                }
-              >
-                <option value="fr">
-                  JJ/MM/AAAA
-                </option>
-                <option value="us">
-                  MM/JJ/AAAA
-                </option>
-                <option value="iso">
-                  AAAA-MM-JJ
-                </option>
-              </select>
-            </div>
-
-            <div className="parametres-info">
-              <strong>Préférences enregistrées</strong>
-              <p>
-                Ces réglages sont sauvegardés. Pour le
-                moment, les autres pages affichent les
-                montants en euros et les dates dans leur
-                format actuel. Changer la devise ne
-                convertit pas les montants.
-              </p>
+            <div>
+              <h2>Préférences</h2>
+              <p>Personnalise ton espace MoneyFlow.</p>
             </div>
           </div>
-        )}
 
-        {/* DONNÉES */}
+          {/* APPARENCE */}
 
-        {ongletActif === "donnees" && (
-          <div className="parametres-carte">
-            <div className="parametres-carte-titre">
-              <span className="parametres-icone">
-                ▤
-              </span>
+          <div className="param-ligne">
+            <div className="param-ligne-label">
+              <span className="param-petit-icone">☼</span>
 
               <div>
-                <h2>Mes données</h2>
-                <p>
-                  Sauvegarde et gère tes transactions.
-                </p>
+                <strong>Apparence</strong>
+                <small>Thème de toute l'application</small>
               </div>
             </div>
 
-            <div className="parametres-donnee-ligne">
-              <div>
-                <h3>Exporter mes transactions</h3>
-                <p>
-                  Télécharge tes transactions au format CSV.
-                </p>
-                <small>
-                  {transactions.length} transaction(s)
-                </small>
-              </div>
+            <div className="param-theme-choix">
+              <button
+                type="button"
+                className={
+                  formulaire.theme === "clair" ? "actif" : ""
+                }
+                onClick={() =>
+                  modifierChamp("theme", "clair")
+                }
+              >
+                ☼ Clair
+              </button>
 
               <button
-                className="parametres-bouton"
                 type="button"
-                onClick={exporterCSV}
+                className={
+                  formulaire.theme === "sombre" ? "actif" : ""
+                }
+                onClick={() =>
+                  modifierChamp("theme", "sombre")
+                }
               >
-                Exporter CSV
+                ☾ Sombre
               </button>
             </div>
+          </div>
 
-            <div className="parametres-separation" />
+          {/* DEVISE */}
 
-            <div className="parametres-donnee-ligne">
+          <div className="param-ligne">
+            <div className="param-ligne-label">
+              <span className="param-petit-icone">€</span>
+
+              <label htmlFor="param-devise">
+                Devise de référence
+              </label>
+            </div>
+
+            <select
+              id="param-devise"
+              value={formulaire.devise}
+              onChange={(event) =>
+                modifierChamp("devise", event.target.value)
+              }
+            >
+              <option value="EUR">Euro (€)</option>
+            </select>
+          </div>
+
+          {/* PREMIER JOUR */}
+
+          <div className="param-ligne">
+            <div className="param-ligne-label">
+              <span className="param-petit-icone">▦</span>
+
+              <label htmlFor="param-semaine">
+                Premier jour de la semaine
+              </label>
+            </div>
+
+            <select
+              id="param-semaine"
+              value={formulaire.premierJour}
+              onChange={(event) =>
+                modifierChamp(
+                  "premierJour",
+                  event.target.value
+                )
+              }
+            >
+              <option value="lundi">Lundi</option>
+              <option value="dimanche">Dimanche</option>
+            </select>
+          </div>
+
+          {/* NOTIFICATIONS */}
+
+          <div className="param-ligne">
+            <div className="param-ligne-label">
+              <span className="param-petit-icone">♧</span>
+
               <div>
-                <h3>Importer des transactions</h3>
-                <p>
-                  Récupère les transactions depuis un CSV
-                  exporté par MoneyFlow.
-                </p>
+                <strong>Rappels de budget</strong>
+
+                <small>
+                  Préférence pour les futures alertes
+                </small>
               </div>
             </div>
 
-            <div className="parametres-import">
+            <label className="param-switch">
               <input
-                type="file"
-                accept=".csv,text/csv"
-                aria-label="Choisir un fichier CSV"
+                type="checkbox"
+                checked={formulaire.notifications}
                 onChange={(event) =>
-                  setFichierImport(
-                    event.target.files?.[0] || null
+                  modifierChamp(
+                    "notifications",
+                    event.target.checked
                   )
                 }
               />
 
-              <button
-                type="button"
-                className="parametres-bouton"
-                onClick={importerCSV}
-                disabled={!fichierImport}
-              >
-                Importer CSV
-              </button>
+              <span className="param-switch-visuel" />
+            </label>
+          </div>
+
+          <p className="param-note">
+            Le thème clair ou sombre s'applique à MoneyFlow.
+            Les rappels de budget seront disponibles
+            prochainement.
+          </p>
+        </section>
+
+        {/* CONFIDENTIALITÉ */}
+
+        <section className="param-carte">
+          <div className="param-carte-entete">
+            <div className="param-icone">♢</div>
+
+            <div>
+              <h2>Confidentialité</h2>
+              <p>Garde le contrôle de tes données.</p>
             </div>
+          </div>
 
-            <div className="parametres-separation" />
+          {/* EXPORT */}
 
-            <div className="parametres-donnee-ligne">
+          <div className="param-ligne">
+            <div className="param-ligne-label">
+              <span className="param-petit-icone">▤</span>
+
               <div>
-                <h3>Réinitialiser mes transactions</h3>
-                <p>
-                  Supprime toutes les transactions enregistrées.
-                  Cette action est irréversible.
-                </p>
+                <strong>Exporter mes données</strong>
+
+                <small>
+                  Télécharger une sauvegarde au format JSON.
+                </small>
               </div>
             </div>
 
-            <div className="parametres-danger">
-              <label htmlFor="confirmation-suppression">
-                Tape REINITIALISER pour confirmer
-              </label>
+            <button
+              type="button"
+              className="param-btn-secondaire"
+              onClick={exporterDonnees}
+            >
+              ↓ Exporter
+            </button>
+          </div>
 
-              <input
-                id="confirmation-suppression"
-                type="text"
-                placeholder="REINITIALISER"
-                value={confirmation}
-                onChange={(event) =>
-                  setConfirmation(event.target.value)
-                }
-              />
+          {/* STOCKAGE */}
+
+          <div className="param-ligne">
+            <div className="param-ligne-label">
+              <span className="param-petit-icone">⌂</span>
+
+              <div>
+                <strong>Stockage local</strong>
+
+                <small>
+                  Données enregistrées dans ce navigateur.
+                </small>
+              </div>
+            </div>
+
+            <span className="param-etiquette">
+              LocalStorage
+            </span>
+          </div>
+
+          {/* SUPPRESSION */}
+
+          <div className="param-ligne">
+            <div className="param-ligne-label">
+              <span className="param-petit-icone">×</span>
+
+              <div>
+                <strong>Supprimer mes données</strong>
+
+                <small>
+                  Effacer les sauvegardes locales MoneyFlow.
+                </small>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              className="param-btn-danger"
+              onClick={supprimerDonnees}
+            >
+              {confirmationSuppression
+                ? "Confirmer"
+                : "Supprimer"}
+            </button>
+          </div>
+
+          {confirmationSuppression && (
+            <p className="param-avertissement">
+              Attention : cette action est irréversible sans
+              sauvegarde. Clique sur « Confirmer » puis valide
+              la fenêtre de confirmation, ou annule ci-dessous.
 
               <button
                 type="button"
-                className="parametres-bouton-danger"
-                disabled={
-                  confirmation !== "REINITIALISER"
+                onClick={() =>
+                  setConfirmationSuppression(false)
                 }
-                onClick={reinitialiserTransactions}
               >
-                Supprimer toutes mes transactions
+                Annuler
               </button>
-            </div>
-          </div>
-        )}
+            </p>
+          )}
+        </section>
 
         {/* SÉCURITÉ */}
 
-        {ongletActif === "securite" && (
-          <div className="parametres-carte">
-            <div className="parametres-carte-titre">
-              <span className="parametres-icone">
-                ♢
-              </span>
+        <section className="param-carte">
+          <div className="param-carte-entete">
+            <div className="param-icone">♙</div>
 
-              <div>
-                <h2>Sécurité et confidentialité</h2>
-                <p>
-                  Comprends comment tes données sont conservées.
-                </p>
-              </div>
-            </div>
+            <div>
+              <h2>Sécurité</h2>
 
-            <div className="parametres-securite-ligne">
-              <span className="parametres-indicateur" />
-
-              <div>
-                <h3>Stockage local</h3>
-                <p>
-                  Tes transactions sont actuellement
-                  enregistrées dans le localStorage de
-                  ton navigateur.
-                </p>
-              </div>
-            </div>
-
-            <div className="parametres-securite-ligne">
-              <span className="parametres-indicateur" />
-
-              <div>
-                <h3>Connexion utilisateur</h3>
-                <p>
-                  L'inscription et la connexion seront
-                  ajoutées lors du développement du backend.
-                </p>
-              </div>
-            </div>
-
-            <div className="parametres-info">
-              <strong>Important</strong>
-              <p>
-                Le stockage local n'est pas un coffre-fort.
-                N'enregistre pas de mots de passe ou de
-                données bancaires sensibles dans cette version.
-              </p>
+              <p>Les protections de ton futur compte.</p>
             </div>
           </div>
-        )}
 
-        {message && (
-          <p
-            className="parametres-message"
-            role="status"
-          >
-            {message}
+          <div className="param-ligne">
+            <div className="param-ligne-label">
+              <span className="param-petit-icone">⚿</span>
+
+              <div>
+                <strong>Mot de passe</strong>
+
+                <small>
+                  Modifier le mot de passe du compte.
+                </small>
+              </div>
+            </div>
+
+            <span className="param-etiquette">
+              À venir
+            </span>
+          </div>
+
+          <div className="param-ligne">
+            <div className="param-ligne-label">
+              <span className="param-petit-icone">♧</span>
+
+              <div>
+                <strong>Double authentification</strong>
+
+                <small>
+                  Ajouter une protection supplémentaire.
+                </small>
+              </div>
+            </div>
+
+            <span className="param-etiquette">
+              À venir
+            </span>
+          </div>
+
+          <div className="param-ligne">
+            <div className="param-ligne-label">
+              <span className="param-petit-icone">▣</span>
+
+              <div>
+                <strong>Sessions actives</strong>
+
+                <small>
+                  Gérer les appareils connectés.
+                </small>
+              </div>
+            </div>
+
+            <span className="param-etiquette">
+              À venir
+            </span>
+          </div>
+
+          <p className="param-note">
+            Ces fonctionnalités nécessitent
+            l'authentification du futur back-end.
           </p>
-        )}
-      </div>
-    </section>
+        </section>
+      </form>
+
+      {/* PIED DE PAGE */}
+
+      <footer className="param-pied">
+        <div>
+          {message && (
+            <p className="param-message" role="status">
+              ✓ {message}
+            </p>
+          )}
+
+          {erreur && (
+            <p className="param-erreur" role="alert">
+              {erreur}
+            </p>
+          )}
+        </div>
+
+        <button
+          className="param-btn-enregistrer"
+          type="submit"
+          form="param-formulaire-principal"
+        >
+          ✓ Enregistrer les modifications
+        </button>
+      </footer>
+    </div>
   );
 }
 

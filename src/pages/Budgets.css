@@ -1,10 +1,13 @@
 
-/* =========================================
-   MONEYFLOW — BUDGETS COMPACT
-========================================= */
+/* ==========================================
+   MONEYFLOW — PAGE BUDGETS
+   Design sauge, crème et violet
+   ========================================== */
 
 .budgets-page,
-.budgets-page * {
+.budgets-page *,
+.budgets-modal,
+.budgets-modal * {
   box-sizing: border-box;
 }
 
@@ -12,17 +15,34 @@
   width: 100%;
   height: 100%;
   min-height: 0;
-  padding: 12px 18px;
-  background: #faf9f6;
-  color: #263f34;
+  min-width: 0;
+  padding: 10px 16px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   overflow: hidden;
+  background: #faf9f6;
+  color: #263f34;
   font-family: inherit;
 }
 
-/* EN-TETE */
+.budgets-page button,
+.budgets-modal button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.budgets-page button:focus-visible,
+.budgets-page input:focus-visible,
+.budgets-modal button:focus-visible,
+.budgets-modal input:focus-visible {
+  outline: 2px solid #8ba58e;
+  outline-offset: 2px;
+}
+
+/* ==========================================
+   EN-TÊTE
+   ========================================== */
 
 .budgets-header {
   display: flex;
@@ -57,6 +77,8 @@
   font-size: 11px;
 }
 
+/* Navigation entre les mois */
+
 .budgets-navigation-mois {
   display: flex;
   align-items: center;
@@ -65,14 +87,21 @@
 }
 
 .budgets-navigation-mois > button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 30px;
   height: 30px;
+  padding: 0;
   border: none;
   border-radius: 50%;
   background: #e9eee7;
   color: #345743;
   font-size: 22px;
-  cursor: pointer;
+}
+
+.budgets-navigation-mois > button:hover {
+  background: #dbe7d8;
 }
 
 .budgets-mois-actuel {
@@ -84,7 +113,7 @@
   padding: 8px 11px;
   border: 1px solid #e1e6df;
   border-radius: 10px;
-  background: white;
+  background: #ffffff;
   font-size: 11px;
   font-weight: 700;
   text-transform: capitalize;
@@ -94,11 +123,13 @@
   color: #557c60;
 }
 
-/* BUDGET GLOBAL ET ALERTE */
+/* ==========================================
+   BUDGET GLOBAL ET ALERTE
+   ========================================== */
 
 .budgets-haut {
   display: grid;
-  grid-template-columns: 1.8fr 1fr;
+  grid-template-columns: minmax(0, 1.8fr) minmax(0, 1fr);
   gap: 12px;
   flex-shrink: 0;
 }
@@ -108,7 +139,7 @@
   align-items: center;
   gap: 14px;
   min-width: 0;
-  padding: 12px 16px;
+  padding: 10px 14px;
   border: 1px solid #e2e9dc;
   border-radius: 15px;
   background: linear-gradient(125deg, #edf3e8, #e6eddf);
@@ -118,17 +149,17 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
   width: 48px;
   height: 48px;
   border-radius: 13px;
   background: #dce7d5;
   font-size: 25px;
-  flex-shrink: 0;
 }
 
 .budgets-global-contenu {
-  min-width: 0;
   flex: 1;
+  min-width: 0;
 }
 
 .budgets-global-contenu > p {
@@ -150,13 +181,17 @@
 }
 
 .budgets-global-montant button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
   width: 25px;
   height: 25px;
+  padding: 0;
   border: none;
   border-radius: 50%;
   background: #dce8d7;
   color: #345743;
-  cursor: pointer;
 }
 
 .budgets-global-chiffres {
@@ -166,12 +201,14 @@
   font-size: 10px;
 }
 
+/* Barres de progression */
+
 .budgets-barre {
   width: 100%;
   height: 7px;
+  overflow: hidden;
   border-radius: 20px;
   background: #e8ece6;
-  overflow: hidden;
 }
 
 .budgets-barre.globale {
@@ -211,11 +248,14 @@
   font-weight: 700;
 }
 
+/* Carte d'alerte */
+
 .budgets-alerte-carte {
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  padding: 16px;
+  min-width: 0;
+  padding: 12px 14px;
   border: 1px solid #eee1f0;
   border-radius: 15px;
   background: linear-gradient(125deg, #f2e8f6, #eee4f2);
@@ -225,13 +265,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
   width: 35px;
   height: 35px;
   border-radius: 11px;
   background: #e7d5ef;
   color: #7c4e90;
   font-size: 21px;
-  flex-shrink: 0;
 }
 
 .budgets-alerte-carte h3 {
@@ -252,11 +292,13 @@
   font-weight: 700;
 }
 
-/* GRAPHIQUE ET CONSEIL */
+/* ==========================================
+   GRAPHIQUE ET CONSEIL
+   ========================================== */
 
 .budgets-milieu {
   display: grid;
-  grid-template-columns: 1.3fr 1fr;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
   gap: 12px;
   flex-shrink: 0;
 }
@@ -266,11 +308,13 @@
   min-width: 0;
   border: 1px solid #e8eae4;
   border-radius: 15px;
-  background: white;
+  background: #ffffff;
 }
 
+/* Graphique */
+
 .budgets-repartition {
-  padding: 10px 15px;
+  padding: 9px 14px;
 }
 
 .budgets-repartition h2 {
@@ -281,14 +325,16 @@
 .budgets-repartition-contenu {
   display: flex;
   align-items: center;
-  gap: 12px;
+  justify-content: space-around;
+  gap: 24px;
+  min-width: 0;
 }
 
 .budgets-graphique {
   position: relative;
-  width: 150px;
-  height: 110px;
   flex-shrink: 0;
+  width: 140px;
+  height: 105px;
 }
 
 .budgets-graphique-centre {
@@ -322,27 +368,31 @@
   font-size: 11px;
 }
 
+/* Légende */
+
 .budgets-legende {
   display: flex;
-  flex-direction: column;
   flex: 1;
-  gap: 5px;
-  max-height: 110px;
-  overflow: hidden;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  max-height: 130px;
+  overflow-y: auto;
+  scrollbar-width: thin;
 }
 
 .budgets-legende-ligne {
   display: flex;
   align-items: center;
   gap: 7px;
-  font-size: 10px;
+  font-size: 11px;
 }
 
 .budgets-legende-point {
+  flex-shrink: 0;
   width: 9px;
   height: 9px;
   border-radius: 50%;
-  flex-shrink: 0;
 }
 
 .budgets-legende-nom {
@@ -357,12 +407,14 @@
   font-size: 10px;
 }
 
+/* Conseil */
+
 .budgets-conseil {
   position: relative;
   align-self: center;
-  padding: 17px 20px;
-  background: linear-gradient(125deg, #f4f2ed, #edeee7);
+  padding: 13px 18px;
   overflow: hidden;
+  background: linear-gradient(125deg, #f4f2ed, #edeee7);
 }
 
 .budgets-conseil-titre {
@@ -402,17 +454,20 @@
   pointer-events: none;
 }
 
-/* TABLEAU DES CATEGORIES */
+/* ==========================================
+   TABLEAU DES CATÉGORIES
+   ========================================== */
 
 .budgets-tableau-section {
   display: flex;
-  flex-direction: column;
   flex: 1;
+  flex-direction: column;
+  min-width: 0;
   min-height: 0;
-  padding: 10px 14px;
+  padding: 8px 12px;
   border: 1px solid #e8eae4;
   border-radius: 15px;
-  background: white;
+  background: #ffffff;
   overflow: hidden;
 }
 
@@ -438,19 +493,26 @@
 
 .budgets-tableau-entete input {
   width: 190px;
+  max-width: 100%;
   padding: 8px 10px;
   border: 1px solid #e1e7df;
   border-radius: 9px;
   outline: none;
   background: #fbfcfa;
   color: #263f34;
-  font-size: 10px;
+  font-size: 11px;
 }
+
+/* Zone de défilement */
 
 .budgets-tableau-scroll {
   flex: 1;
+  min-width: 0;
   min-height: 0;
-  overflow: hidden;
+  overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #b5c7b5 transparent;
+  -webkit-overflow-scrolling: touch;
 }
 
 .budgets-tableau {
@@ -461,11 +523,14 @@
 }
 
 .budgets-tableau thead {
+  position: sticky;
+  top: 0;
+  z-index: 2;
   background: #f4f4f0;
 }
 
 .budgets-tableau th {
-  padding: 8px 10px;
+  padding: 7px 9px;
   color: #68766b;
   font-size: 10px;
   font-weight: 700;
@@ -473,7 +538,7 @@
 }
 
 .budgets-tableau td {
-  padding: 6px 10px;
+  padding: 4px 9px;
   border-bottom: 1px solid #edf0eb;
   white-space: nowrap;
 }
@@ -492,13 +557,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 25px;
-  height: 25px;
+  flex-shrink: 0;
+  width: 23px;
+  height: 23px;
   border-radius: 7px;
-  color: white;
+  color: #ffffff;
   font-size: 11px;
   font-weight: 800;
-  flex-shrink: 0;
 }
 
 .budgets-restant {
@@ -537,14 +602,14 @@
 }
 
 .budgets-modifier {
-  width: 26px;
-  height: 26px;
+  width: 24px;
+  height: 24px;
+  padding: 0;
   border: 1px solid #e0e7dd;
   border-radius: 7px;
   background: #f6f8f4;
   color: #345743;
   font-size: 14px;
-  cursor: pointer;
 }
 
 .budgets-modifier:hover {
@@ -562,7 +627,9 @@
   font-size: 11px;
 }
 
-/* MODALE */
+/* ==========================================
+   FENÊTRE DE MODIFICATION
+   ========================================== */
 
 .budgets-modal-fond {
   position: fixed;
@@ -578,9 +645,12 @@
 .budgets-modal {
   width: 100%;
   max-width: 430px;
+  max-height: 90dvh;
+  overflow-y: auto;
   padding: 25px;
   border-radius: 18px;
-  background: white;
+  background: #ffffff;
+  color: #263f34;
   box-shadow: 0 20px 60px rgba(20, 39, 28, 0.16);
 }
 
@@ -607,11 +677,14 @@
 }
 
 .budgets-modal input {
+  width: 100%;
   padding: 12px;
   border: 1px solid #dce5da;
   border-radius: 10px;
   outline: none;
-  font-size: 14px;
+  background: #ffffff;
+  color: #263f34;
+  font-size: 16px;
 }
 
 .budgets-erreur {
@@ -632,7 +705,6 @@
   border: none;
   border-radius: 9px;
   font-weight: 700;
-  cursor: pointer;
 }
 
 .budgets-btn-annuler {
@@ -642,143 +714,658 @@
 
 .budgets-btn-enregistrer {
   background: #315743;
-  color: white;
+  color: #ffffff;
 }
 
-/* RESPONSIVE */
+/* ==========================================
+   MODE SOMBRE — BUDGETS
+   ========================================== */
+
+:root[data-theme="sombre"] .budgets-page {
+  background: #17191f;
+  color: #f4f0fa;
+}
+
+/* En-tête */
+
+:root[data-theme="sombre"] .budgets-sur-titre,
+:root[data-theme="sombre"] .budgets-header p {
+  color: #a9bfae;
+}
+
+:root[data-theme="sombre"] .budgets-header h1 {
+  color: #f4f0fa;
+}
+
+/* Navigation mensuelle */
+
+:root[data-theme="sombre"] .budgets-navigation-mois > button,
+:root[data-theme="sombre"] .budgets-mois-actuel {
+  background: #292b35;
+  color: #f4f0fa;
+  border-color: #41414e;
+}
+
+:root[data-theme="sombre"] .budgets-mois-actuel span {
+  color: #a9cbb0;
+}
+
+/* Budget global */
+
+:root[data-theme="sombre"] .budgets-global {
+  background: linear-gradient(125deg, #293d32, #25362e);
+  border-color: #405b49;
+  color: #f4f0fa;
+}
+
+:root[data-theme="sombre"] .budgets-global-contenu > p,
+:root[data-theme="sombre"] .budgets-global-montant h2 {
+  color: #f4f0fa;
+}
+
+:root[data-theme="sombre"] .budgets-global-chiffres {
+  color: #c1d5c4;
+}
+
+:root[data-theme="sombre"] .budgets-global-icone,
+:root[data-theme="sombre"] .budgets-global-montant button {
+  background: #3d5946;
+  color: #e4f1e5;
+}
+
+:root[data-theme="sombre"] .budgets-global-bas strong {
+  color: #a8dbb0;
+}
+
+:root[data-theme="sombre"] .budgets-global-bas > span {
+  background: #3b5542;
+  color: #e4f1e5;
+}
+
+:root[data-theme="sombre"] .budgets-barre {
+  background: #454a50;
+}
+
+:root[data-theme="sombre"] .budgets-barre.globale {
+  background: #46574b;
+}
+
+/* Alerte */
+
+:root[data-theme="sombre"] .budgets-alerte-carte {
+  background: linear-gradient(125deg, #33283e, #2d2738);
+  border-color: #51405e;
+  color: #f4f0fa;
+}
+
+:root[data-theme="sombre"] .budgets-alerte-carte h3 {
+  color: #f4f0fa;
+}
+
+:root[data-theme="sombre"] .budgets-alerte-carte p {
+  color: #d6c7df;
+}
+
+:root[data-theme="sombre"] .budgets-alerte-carte span {
+  color: #d9b6f0;
+}
+
+:root[data-theme="sombre"] .budgets-alerte-icone {
+  background: #493557;
+  color: #e3c6f5;
+}
+
+/* Répartition */
+
+:root[data-theme="sombre"] .budgets-repartition {
+  background: #252830;
+  border-color: #3d414d;
+  color: #f4f0fa;
+}
+
+:root[data-theme="sombre"] .budgets-repartition h2,
+:root[data-theme="sombre"] .budgets-graphique-centre strong,
+:root[data-theme="sombre"] .budgets-legende-ligne {
+  color: #f4f0fa;
+}
+
+:root[data-theme="sombre"] .budgets-graphique-centre span,
+:root[data-theme="sombre"] .budgets-graphique-vide {
+  color: #a9bfae;
+}
+
+/* Conseil */
+
+:root[data-theme="sombre"] .budgets-conseil {
+  background: linear-gradient(125deg, #302b39, #292b35);
+  border-color: #494153;
+  color: #f4f0fa;
+}
+
+:root[data-theme="sombre"] .budgets-conseil h2 {
+  color: #f4f0fa;
+}
+
+:root[data-theme="sombre"] .budgets-conseil p {
+  color: #d2cddd;
+}
+
+:root[data-theme="sombre"] .budgets-conseil-titre span {
+  color: #d8b67c;
+}
+
+/* Tableau */
+
+:root[data-theme="sombre"] .budgets-tableau-section {
+  background: #252830;
+  border-color: #3d414d;
+  color: #f4f0fa;
+}
+
+:root[data-theme="sombre"] .budgets-tableau-entete h2 {
+  color: #f4f0fa;
+}
+
+:root[data-theme="sombre"] .budgets-tableau-entete p {
+  color: #a9bfae;
+}
+
+:root[data-theme="sombre"] .budgets-tableau-entete input {
+  background: #20232b;
+  border-color: #454957;
+  color: #f4f0fa;
+}
+
+:root[data-theme="sombre"] .budgets-tableau-entete input::placeholder {
+  color: #a6a8b6;
+}
+
+:root[data-theme="sombre"] .budgets-tableau thead {
+  background: #30333e;
+}
+
+:root[data-theme="sombre"] .budgets-tableau th {
+  color: #c8c8d4;
+}
+
+:root[data-theme="sombre"] .budgets-tableau td {
+  border-bottom-color: #3d414d;
+  color: #f4f0fa;
+}
+
+:root[data-theme="sombre"] .budgets-categorie-identite strong {
+  color: #f4f0fa;
+}
+
+:root[data-theme="sombre"] .budgets-restant {
+  background: #304b3b;
+  color: #b7e2bf;
+}
+
+:root[data-theme="sombre"] .budgets-restant.danger {
+  background: #513536;
+  color: #ffaaa3;
+}
+
+:root[data-theme="sombre"] .budgets-modifier {
+  background: #344b3c;
+  border-color: #4d6754;
+  color: #d8f1dc;
+}
+
+:root[data-theme="sombre"] .budgets-modifier:hover {
+  background: #42624d;
+}
+
+/* Modale */
+
+:root[data-theme="sombre"] .budgets-modal {
+  background: #252830;
+  border: 1px solid #414653;
+  color: #f4f0fa;
+}
+
+:root[data-theme="sombre"] .budgets-modal h2,
+:root[data-theme="sombre"] .budgets-modal label {
+  color: #f4f0fa;
+}
+
+:root[data-theme="sombre"] .budgets-modal > p {
+  color: #b7c4b9;
+}
+
+:root[data-theme="sombre"] .budgets-modal input {
+  background: #1e2229;
+  border-color: #4b5260;
+  color: #f4f0fa;
+}
+
+:root[data-theme="sombre"] .budgets-btn-annuler {
+  background: #3c414b;
+  color: #f4f0fa;
+}
+
+:root[data-theme="sombre"] .budgets-btn-enregistrer {
+  background: #50775c;
+  color: #ffffff;
+}
+
+/* ==========================================
+   TABLETTES
+   ========================================== */
 
 @media (max-width: 1050px) {
   .budgets-page {
-    padding: 10px;
-    gap: 8px;
+    padding: 12px;
+    gap: 10px;
   }
 
   .budgets-haut,
   .budgets-milieu {
-    gap: 8px;
+    gap: 10px;
+  }
+
+  .budgets-repartition-contenu {
+    gap: 12px;
   }
 }
 
-@media (max-width: 800px) {
+/* ==========================================
+   MOBILE — 899 PX ET MOINS
+   ========================================== */
+
+@media (max-width: 899px) {
   .budgets-page {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
     height: auto;
-    min-height: 100%;
+    min-height: 0;
+    padding: 12px 0 24px;
+    gap: 16px;
     overflow: visible;
   }
 
+  /* En-tête */
+
   .budgets-header {
-    flex-wrap: wrap;
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 14px;
   }
+
+  .budgets-sur-titre {
+    font-size: 11px;
+  }
+
+  .budgets-header h1 {
+    font-size: 26px;
+    line-height: 1.3;
+  }
+
+  .budgets-header h1 span {
+    font-size: 23px;
+  }
+
+  .budgets-header p {
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  /* Navigation mensuelle */
+
+  .budgets-navigation-mois {
+    width: 100%;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .budgets-navigation-mois > button {
+    flex-shrink: 0;
+    width: 42px;
+    height: 42px;
+    font-size: 24px;
+  }
+
+  .budgets-mois-actuel {
+    flex: 1;
+    min-width: 0;
+    min-height: 42px;
+    padding: 10px;
+    font-size: 14px;
+  }
+
+  /* Cartes en colonne */
 
   .budgets-haut,
   .budgets-milieu {
-    grid-template-columns: 1fr;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
   }
 
+  .budgets-global,
+  .budgets-alerte-carte {
+    padding: 18px;
+    border-radius: 16px;
+  }
+
+  .budgets-global {
+    align-items: flex-start;
+  }
+
+  .budgets-global-icone {
+    width: 46px;
+    height: 46px;
+  }
+
+  .budgets-global-contenu > p {
+    font-size: 14px;
+  }
+
+  .budgets-global-montant {
+    flex-wrap: wrap;
+  }
+
+  .budgets-global-montant h2 {
+    font-size: 27px;
+  }
+
+  .budgets-global-montant button {
+    width: 32px;
+    height: 32px;
+  }
+
+  .budgets-global-chiffres {
+    margin: 9px 0;
+    font-size: 12px;
+  }
+
+  .budgets-global-bas {
+    flex-wrap: wrap;
+    margin-top: 10px;
+  }
+
+  .budgets-global-bas strong,
+  .budgets-global-bas > span {
+    font-size: 12px;
+  }
+
+  .budgets-alerte-icone {
+    width: 40px;
+    height: 40px;
+  }
+
+  .budgets-alerte-carte h3 {
+    font-size: 17px;
+  }
+
+  .budgets-alerte-carte p {
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .budgets-alerte-carte span {
+    font-size: 12px;
+  }
+
+  /* Graphique */
+
+  .budgets-repartition {
+    padding: 18px;
+  }
+
+  .budgets-repartition h2 {
+    margin-bottom: 14px;
+    font-size: 18px;
+  }
+
+  .budgets-repartition-contenu {
+    justify-content: center;
+    gap: 20px;
+  }
+
+  .budgets-graphique {
+    width: 160px;
+    height: 150px;
+  }
+
+  .budgets-graphique-centre strong {
+    font-size: 13px;
+  }
+
+  .budgets-graphique-centre span {
+    font-size: 10px;
+  }
+
+  .budgets-legende {
+    max-height: none;
+    overflow: visible;
+    gap: 9px;
+  }
+
+  .budgets-legende-ligne,
+  .budgets-legende-ligne strong {
+    font-size: 12px;
+  }
+
+  /* Conseil */
+
+  .budgets-conseil {
+    align-self: stretch;
+    padding: 20px;
+  }
+
+  .budgets-conseil-titre h2 {
+    font-size: 18px;
+  }
+
+  .budgets-conseil p {
+    max-width: 100%;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* Tableau */
+
   .budgets-tableau-section {
-    min-height: 260px;
+    flex: initial;
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+    padding: 16px;
+    overflow: hidden;
+  }
+
+  .budgets-tableau-entete {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  .budgets-tableau-entete h2 {
+    font-size: 18px;
+  }
+
+  .budgets-tableau-entete p {
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .budgets-tableau-entete input {
+    width: 100%;
+    min-height: 44px;
+    font-size: 16px;
   }
 
   .budgets-tableau-scroll {
+    display: block;
+    flex: initial;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    max-height: none;
     overflow-x: auto;
+    overflow-y: visible;
+    -webkit-overflow-scrolling: touch;
   }
 
   .budgets-tableau {
+    width: 100%;
     min-width: 700px;
+    font-size: 13px;
+  }
+
+  .budgets-tableau th {
+    padding: 12px;
+    font-size: 12px;
+  }
+
+  .budgets-tableau td {
+    padding: 10px 12px;
+  }
+
+  .budgets-categorie-identite strong {
+    font-size: 13px;
+  }
+
+  .budgets-categorie-icone {
+    width: 32px;
+    height: 32px;
+  }
+
+  .budgets-restant {
+    font-size: 12px;
+  }
+
+  .budgets-progression-cellule > span {
+    font-size: 12px;
+  }
+
+  .budgets-modifier {
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+  }
+
+  .budgets-vide {
+    font-size: 14px;
+  }
+
+  /* Modale */
+
+  .budgets-modal {
+    max-width: 430px;
+    padding: 20px;
+  }
+
+  .budgets-modal label {
+    font-size: 14px;
+  }
+
+  .budgets-modal input {
+    font-size: 16px;
   }
 }
 
-/* =========================================
-   MONEYFLOW — AJUSTEMENTS FINAUX BUDGETS
-========================================= */
+/* ==========================================
+   PETITS TÉLÉPHONES — 480 PX ET MOINS
+   ========================================== */
 
-/* Réduire les espaces entre les sections */
-.budgets-page {
-  gap: 8px;
-  padding: 10px 16px;
-}
+@media (max-width: 480px) {
+  .budgets-page {
+    padding: 8px 0 24px;
+    gap: 14px;
+  }
 
-/* Réduire légèrement les blocs supérieurs */
-.budgets-global {
-  padding: 10px 14px;
-}
+  .budgets-header h1 {
+    font-size: 24px;
+  }
 
-.budgets-alerte-carte {
-  padding: 12px 14px;
-}
+  .budgets-global {
+    gap: 12px;
+    padding: 15px;
+  }
 
-/* Optimiser la place du graphique */
-.budgets-repartition {
-  padding: 9px 14px;
-}
+  .budgets-global-icone {
+    width: 38px;
+    height: 38px;
+    font-size: 22px;
+  }
 
-.budgets-repartition-contenu {
-  justify-content: space-around;
-  gap: 24px;
-}
+  .budgets-global-montant h2 {
+    font-size: 24px;
+    overflow-wrap: anywhere;
+  }
 
-.budgets-graphique {
-  width: 140px;
-  height: 105px;
-}
+  .budgets-global-chiffres {
+    text-align: left;
+  }
 
-.budgets-legende {
-  flex: 1;
-  max-height: none;
-  gap: 4px;
-  overflow: visible;
-}
+  .budgets-alerte-carte {
+    padding: 15px;
+  }
 
-.budgets-legende-ligne {
-  font-size: 11px;
-}
+  .budgets-repartition {
+    padding: 16px;
+  }
 
-/* Réduire le conseil du mois */
-.budgets-conseil {
-  padding: 13px 18px;
-}
+  .budgets-repartition-contenu {
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+  }
 
-/* Donner plus de place au tableau */
-.budgets-tableau-section {
-  padding: 8px 12px;
-}
+  .budgets-graphique {
+    width: 180px;
+    height: 160px;
+  }
 
-.budgets-tableau-entete {
-  margin-bottom: 5px;
-}
+  .budgets-legende {
+    width: 100%;
+    gap: 10px;
+  }
 
-.budgets-tableau th {
-  padding: 7px 9px;
-}
+  .budgets-legende-ligne {
+    width: 100%;
+    gap: 10px;
+  }
 
-.budgets-tableau td {
-  padding: 4px 9px;
-}
+  .budgets-legende-nom {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
 
-.budgets-categorie-icone {
-  width: 23px;
-  height: 23px;
-}
+  .budgets-conseil {
+    padding: 16px;
+  }
 
-.budgets-modifier {
-  width: 24px;
-  height: 24px;
-}
+  .budgets-conseil-decoration {
+    opacity: 0.25;
+  }
 
-/* Ne plus couper les dernières catégories :
-   le tableau défile uniquement si nécessaire */
-.budgets-tableau-scroll {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  overflow-x: auto;
-  scrollbar-width: thin;
-  scrollbar-color: #b5c7b5 transparent;
-}
+  .budgets-tableau-section {
+    padding: 14px 12px;
+  }
 
-.budgets-tableau thead {
-  position: sticky;
-  top: 0;
-  z-index: 2;
-  background: #f4f4f0;
+  .budgets-tableau {
+    min-width: 680px;
+  }
+
+  .budgets-modal-fond {
+    padding: 12px;
+  }
+
+  .budgets-modal {
+    padding: 18px;
+  }
+
+  .budgets-modal-actions {
+    flex-wrap: wrap;
+  }
+
+  .budgets-modal-actions button {
+    min-height: 42px;
+  }
 }
