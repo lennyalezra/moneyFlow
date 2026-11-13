@@ -1,39 +1,76 @@
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer,
+  Tooltip,
+} from "recharts";
 import "./Budgets.css";
 
 const formaterMontant = (montant) =>
   new Intl.NumberFormat("fr-FR", {
     style: "currency",
     currency: "EUR",
-  }).format(montant);
+  }).format(Number(montant) || 0);
+
+const moisEnFrancais = new Intl.DateTimeFormat("fr-FR", {
+  month: "long",
+  year: "numeric",
+});
+
+function obtenirCleMois(date) {
+  return `${date.getFullYear()}-${String(
+    date.getMonth() + 1
+  ).padStart(2, "0")}`;
+}
+
+function lireBudgetsGlobaux() {
+  try {
+    const donnees = JSON.parse(
+      localStorage.getItem("moneyflow-budgets-globaux")
+    );
+
+    return donnees && typeof donnees === "object"
+      ? donnees
+      : {};
+  } catch {
+    return {};
+  }
+}
 
 function Budgets({
   transactions = [],
   categories = [],
   setCategories,
 }) {
-  const [recherche, setRecherche] = useState("");
-  const [categorieSelectionnee, setCategorieSelectionnee] =
-    useState(null);
-  const [nouveauBudget, setNouveauBudget] = useState("");
+  const [moisSelectionne, setMoisSelectionne] = useState(
+    () => new Date(new Date().getFullYear(), new Date().getMonth(), 1)
+  );
+
+  const [budgetsGlobaux, setBudgetsGlobaux] =
+    useState(lireBudgetsGlobaux);
+
+  const [modal, setModal] = useState(null);
+  const [montantSaisi, setMontantSaisi] = useState("");
   const [erreur, setErreur] = useState("");
+  const [recherche, setRecherche] = useState("");
+
+  const cleMois = obtenirCleMois(moisSelectionne);
+
+  useEffect(() => {
+    localStorage.setItem(
+      "moneyflow-budgets-globaux",
+      JSON.stringify(budgetsGlobaux)
+    );
+  }, [budgetsGlobaux]);
 
   const donnees = useMemo(() => {
-    const maintenant = new Date();
-
     const transactionsDuMois = transactions.filter(
-      (transaction) => {
-        const date = new Date(
-          `${transaction.date}T12:00:00`
-        );
-
-        return (
-          !Number.isNaN(date.getTime()) &&
-          date.getMonth() === maintenant.getMonth() &&
-          date.getFullYear() === maintenant.getFullYear()
-        );
-      }
+      (transaction) =>
+        typeof transaction.date === "string" &&
+        transaction.date.slice(0, 7) === cleMois
     );
 
     const categoriesDepenses = categories.filter(
@@ -44,9 +81,11 @@ function Budgets({
       const depenses = transactionsDuMois
         .filter(
           (transaction) =>
-            transaction.categorie?.trim().toLowerCase() ===
-              categorie.nom.trim().toLowerCase() &&
-            Number(transaction.montant) < 0
+            Number(transaction.montant) < 0 &&
+            String(transaction.categorie || "")
+              .trim()
+              .toLowerCase() ===
+              String(categorie.nom || "").trim().toLowerCase()
         )
         .reduce(
           (total, transaction) =>
@@ -55,336 +94,543 @@ function Budgets({
         );
 
       const budget = Number(categorie.budget) || 0;
-      const restant = budget - depenses;
 
       return {
         ...categorie,
         budget,
         depenses,
-        restant,
+        restant: budget - depenses,
         progression:
           budget > 0 ? (depenses / budget) * 100 : 0,
         depasse: depenses > budget,
       };
     });
 
-    const budgetTotal = budgets.reduce(
-      (total, categorie) => total + categorie.budget,
-      0
-    );
-
     const depensesTotales = transactionsDuMois
-      .filter(
-        (transaction) => Number(transaction.montant) < 0
-      )
+      .filter((transaction) => Number(transaction.montant) < 0)
       .reduce(
         (total, transaction) =>
           total + Math.abs(Number(transaction.montant)),
         0
       );
 
+    const budgetReparti = budgets.reduce(
+      (total, categorie) => total + categorie.budget,
+      0
+    );
+
+    const budgetGlobal = Number(budgetsGlobaux[cleMois]) || 0;
+
+    const categoriesDepassees = budgets.filter(
+      (categorie) => categorie.depasse
+    );
+
+    const repartition = budgets
+      .filter((categorie) => categorie.budget > 0)
+      .map((categorie) => ({
+        name: categorie.nom,
+        value: categorie.budget,
+        couleur: categorie.couleur || "#8ba58e",
+      }));
+
     return {
       budgets,
-      budgetTotal,
       depensesTotales,
-      disponible: budgetTotal - depensesTotales,
-      depassements: budgets.filter(
-        (categorie) => categorie.depasse
-      ).length,
+      budgetReparti,
+      budgetGlobal,
+      restant: budgetGlobal - depensesTotales,
+      nonReparti: budgetGlobal - budgetReparti,
+      progression:
+        budgetGlobal > 0
+          ? (depensesTotales / budgetGlobal) * 100
+          : 0,
+      categoriesDepassees,
+      repartition,
     };
-  }, [transactions, categories]);
+  }, [transactions, categories, cleMois, budgetsGlobaux]);
 
-  const budgetsFiltres = donnees.budgets.filter(
-    (categorie) =>
-      categorie.nom
-        .toLowerCase()
-        .includes(recherche.trim().toLowerCase())
+  const budgetsFiltres = donnees.budgets.filter((categorie) =>
+    categorie.nom
+      .toLowerCase()
+      .includes(recherche.trim().toLowerCase())
   );
 
-  function ouvrirModification(categorie) {
-    setCategorieSelectionnee(categorie);
-    setNouveauBudget(String(categorie.budget));
-    setErreur("");
+  function changerMois(decalage) {
+    setMoisSelectionne(
+      (ancien) =>
+        new Date(
+          ancien.getFullYear(),
+          ancien.getMonth() + decalage,
+          1
+        )
+    );
   }
 
-  function fermerModification() {
-    setCategorieSelectionnee(null);
-    setNouveauBudget("");
+  function ouvrirBudgetGlobal() {
+    setMontantSaisi(
+      budgetsGlobaux[cleMois] !== undefined
+        ? String(budgetsGlobaux[cleMois])
+        : ""
+    );
+    setErreur("");
+    setModal({ type: "global" });
+  }
+
+  function ouvrirBudgetCategorie(categorie) {
+    setMontantSaisi(String(categorie.budget));
+    setErreur("");
+    setModal({ type: "categorie", categorie });
+  }
+
+  function fermerModal() {
+    setModal(null);
+    setMontantSaisi("");
     setErreur("");
   }
 
   function enregistrerBudget(event) {
     event.preventDefault();
 
-    if (!categorieSelectionnee) {
-      return;
-    }
-
-    const valeur = Number(nouveauBudget);
+    const montant = Number(montantSaisi);
 
     if (
-      nouveauBudget.trim() === "" ||
-      !Number.isFinite(valeur) ||
-      valeur < 0
+      montantSaisi.trim() === "" ||
+      !Number.isFinite(montant) ||
+      montant < 0
     ) {
       setErreur(
-        "Saisis un budget valide, supérieur ou égal à 0."
+        "Saisis un montant valide supérieur ou égal à zéro."
       );
       return;
     }
 
-    const budgetArrondi =
-      Math.round(valeur * 100) / 100;
+    const montantArrondi = Math.round(montant * 100) / 100;
 
-    setCategories((anciennes) =>
-      anciennes.map((categorie) =>
-        categorie.id === categorieSelectionnee.id
-          ? {
-              ...categorie,
-              budget: budgetArrondi,
-            }
-          : categorie
-      )
-    );
+    if (modal.type === "global") {
+      setBudgetsGlobaux((anciens) => ({
+        ...anciens,
+        [cleMois]: montantArrondi,
+      }));
+    } else if (modal.type === "categorie") {
+      setCategories((anciennes) =>
+        anciennes.map((categorie) =>
+          categorie.id === modal.categorie.id
+            ? { ...categorie, budget: montantArrondi }
+            : categorie
+        )
+      );
+    }
 
-    fermerModification();
+    fermerModal();
   }
+
+  const progressionAffichee = Math.min(
+    100,
+    Math.max(0, donnees.progression)
+  );
 
   return (
     <div className="budgets-page">
       <header className="budgets-header">
         <div>
-          <h1>Mes budgets</h1>
+          <span className="budgets-sur-titre">MES BUDGETS</span>
+          <h1>Gérer mes budgets <span>👛</span></h1>
           <p>
-            Gère tes limites de dépenses et suis tes budgets
-            mensuels.
+            Planifie tes dépenses, suis tes limites et garde
+            le contrôle de ton argent.
           </p>
+        </div>
+
+        <div className="budgets-navigation-mois">
+          <button
+            type="button"
+            onClick={() => changerMois(-1)}
+            aria-label="Mois précédent"
+          >
+            ‹
+          </button>
+
+          <div className="budgets-mois-actuel">
+            <span>▦</span>
+            {moisEnFrancais.format(moisSelectionne)}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => changerMois(1)}
+            aria-label="Mois suivant"
+          >
+            ›
+          </button>
         </div>
       </header>
 
-      <section className="budgets-resume">
-        <article className="budgets-stat">
-          <div className="budgets-stat-icone">◇</div>
+      <section className="budgets-haut">
+        <article className="budgets-global">
+          <div className="budgets-global-icone">💵</div>
 
-          <div>
-            <strong>
-              {formaterMontant(donnees.budgetTotal)}
-            </strong>
-            <p>Budget mensuel total</p>
+          <div className="budgets-global-contenu">
+            <p>Budget mensuel</p>
+
+            <div className="budgets-global-montant">
+              <h2>
+                {formaterMontant(donnees.budgetGlobal)}
+              </h2>
+
+              <button
+                type="button"
+                onClick={ouvrirBudgetGlobal}
+                aria-label="Modifier le budget mensuel"
+                title="Modifier le budget mensuel"
+              >
+                ✎
+              </button>
+            </div>
+
+            <div className="budgets-global-chiffres">
+              <span>
+                {formaterMontant(donnees.depensesTotales)}
+                {" / "}
+                {formaterMontant(donnees.budgetGlobal)}
+              </span>
+            </div>
+
+            <div className="budgets-barre globale">
+              <div
+                className={
+                  donnees.progression > 100
+                    ? "budgets-remplissage danger"
+                    : "budgets-remplissage"
+                }
+                style={{ width: `${progressionAffichee}%` }}
+              />
+            </div>
+
+            <div className="budgets-global-bas">
+              <strong
+                className={
+                  donnees.restant < 0 ? "texte-danger" : ""
+                }
+              >
+                {donnees.restant < 0
+                  ? `${formaterMontant(
+                      Math.abs(donnees.restant)
+                    )} de dépassement`
+                  : `${formaterMontant(
+                      donnees.restant
+                    )} restants`}
+              </strong>
+
+              <span>
+                {Math.round(donnees.progression)} % utilisé
+              </span>
+            </div>
           </div>
         </article>
 
-        <article className="budgets-stat">
-          <div className="budgets-stat-icone depense">
-            €
-          </div>
+        <article className="budgets-alerte-carte">
+          <div className="budgets-alerte-icone">♧</div>
 
           <div>
-            <strong>
-              {formaterMontant(donnees.depensesTotales)}
-            </strong>
-            <p>Dépenses du mois</p>
-          </div>
-        </article>
+            <h3>
+              {donnees.categoriesDepassees.length > 0
+                ? "Attention"
+                : "Tout est sous contrôle"}
+            </h3>
 
-        <article className="budgets-stat">
-          <div className="budgets-stat-icone disponible">
-            ◎
-          </div>
+            <p>
+              {donnees.categoriesDepassees.length > 0
+                ? `${donnees.categoriesDepassees.length} catégorie(s) ont dépassé leur budget.`
+                : "Aucun dépassement par catégorie pour ce mois."}
+            </p>
 
-          <div>
-            <strong
-              className={
-                donnees.disponible < 0
-                  ? "budgets-texte-danger"
-                  : ""
-              }
-            >
-              {formaterMontant(donnees.disponible)}
-            </strong>
-
-            <p>Budget disponible</p>
+            {donnees.categoriesDepassees.length > 0 && (
+              <span>
+                {donnees.categoriesDepassees
+                  .map((categorie) => categorie.nom)
+                  .join(", ")}
+              </span>
+            )}
           </div>
         </article>
       </section>
 
-      <section className="budgets-carte">
-        <div className="budgets-carte-entete">
+      <section className="budgets-milieu">
+        <article className="budgets-repartition">
+          <h2>Répartition du budget</h2>
+
+          <div className="budgets-repartition-contenu">
+            <div className="budgets-graphique">
+              {donnees.repartition.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={donnees.repartition}
+                      dataKey="value"
+                      nameKey="name"
+                      innerRadius="63%"
+                      outerRadius="88%"
+                      paddingAngle={2}
+                    >
+                      {donnees.repartition.map((item, index) => (
+                        <Cell
+                          key={`${item.name}-${index}`}
+                          fill={item.couleur}
+                        />
+                      ))}
+                    </Pie>
+
+                    <Tooltip
+                      formatter={(value) =>
+                        formaterMontant(value)
+                      }
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="budgets-graphique-vide">
+                  Aucun budget réparti
+                </div>
+              )}
+
+              {donnees.repartition.length > 0 && (
+                <div className="budgets-graphique-centre">
+                  <strong>
+                    {formaterMontant(donnees.budgetReparti)}
+                  </strong>
+                  <span>Budget réparti</span>
+                </div>
+              )}
+            </div>
+
+            <div className="budgets-legende">
+              {donnees.repartition.map((item, index) => (
+                <div
+                  className="budgets-legende-ligne"
+                  key={`${item.name}-${index}`}
+                >
+                  <span
+                    className="budgets-legende-point"
+                    style={{ background: item.couleur }}
+                  />
+
+                  <span className="budgets-legende-nom">
+                    {item.name}
+                  </span>
+
+                  <strong>
+                    {donnees.budgetReparti > 0
+                      ? Math.round(
+                          (item.value /
+                            donnees.budgetReparti) *
+                            100
+                        )
+                      : 0}
+                    %
+                  </strong>
+                </div>
+              ))}
+            </div>
+          </div>
+        </article>
+
+        <article className="budgets-conseil">
+          <div className="budgets-conseil-titre">
+            <span>✦</span>
+            <h2>Conseil du mois</h2>
+          </div>
+
+          {donnees.budgetGlobal <= 0 ? (
+            <p>
+              Commence par définir ton budget mensuel
+              pour mieux organiser tes dépenses.
+            </p>
+          ) : donnees.nonReparti > 0 ? (
+            <p>
+              Il te reste{" "}
+              <strong>
+                {formaterMontant(donnees.nonReparti)}
+              </strong>{" "}
+              à répartir entre tes catégories.
+            </p>
+          ) : donnees.nonReparti < 0 ? (
+            <p>
+              Tes budgets par catégorie dépassent ton
+              budget global de{" "}
+              <strong>
+                {formaterMontant(
+                  Math.abs(donnees.nonReparti)
+                )}
+              </strong>.
+            </p>
+          ) : donnees.progression > 100 ? (
+            <p>
+              Ton budget mensuel est dépassé.
+              Consulte tes dépenses pour identifier
+              les postes à ajuster.
+            </p>
+          ) : (
+            <p>
+              Bravo, tu as réparti l'ensemble de ton
+              budget mensuel entre tes catégories !
+            </p>
+          )}
+
+          <div className="budgets-conseil-decoration">
+            ✧
+          </div>
+        </article>
+      </section>
+
+      <section className="budgets-tableau-section">
+        <div className="budgets-tableau-entete">
           <div>
             <h2>Budgets par catégorie</h2>
             <p>
-              Retrouve les dépenses du mois et les limites
-              de chaque catégorie.
+              Consulte et ajuste les limites de tes catégories.
             </p>
           </div>
 
           <input
             type="search"
-            placeholder="Rechercher..."
+            placeholder="Rechercher une catégorie..."
             value={recherche}
             onChange={(event) =>
               setRecherche(event.target.value)
             }
-            aria-label="Rechercher un budget"
           />
         </div>
 
-        {donnees.depassements > 0 && (
-          <div className="budgets-alerte">
-            <span>!</span>
-            {donnees.depassements} catégorie(s) ont dépassé
-            leur budget.
-          </div>
-        )}
+        <div className="budgets-tableau-scroll">
+          <table className="budgets-tableau">
+            <thead>
+              <tr>
+                <th>Catégorie</th>
+                <th>Budget prévu</th>
+                <th>Dépensé</th>
+                <th>Restant</th>
+                <th>Progression</th>
+                <th>Action</th>
+              </tr>
+            </thead>
 
-        <div className="budgets-liste">
-          {budgetsFiltres.length === 0 ? (
-            <p className="budgets-vide">
-              Aucun budget trouvé.
-            </p>
-          ) : (
-            budgetsFiltres.map((categorie) => (
-              <article
-                className="budgets-ligne"
-                key={categorie.id}
-              >
-                <div className="budgets-ligne-haut">
-                  <div className="budgets-identite">
-                    <span
-                      className="budgets-pastille"
-                      style={{
-                        backgroundColor:
-                          categorie.couleur || "#8ba58e",
-                      }}
-                    >
-                      {categorie.nom
-                        .charAt(0)
-                        .toUpperCase()}
-                    </span>
+            <tbody>
+              {budgetsFiltres.map((categorie) => {
+                const progression = Math.min(
+                  100,
+                  Math.max(0, categorie.progression)
+                );
 
-                    <div>
-                      <h3>{categorie.nom}</h3>
+                return (
+                  <tr key={categorie.id}>
+                    <td>
+                      <div className="budgets-categorie-identite">
+                        <span
+                          className="budgets-categorie-icone"
+                          style={{
+                            background:
+                              categorie.couleur || "#8ba58e",
+                          }}
+                        >
+                          {categorie.nom.charAt(0).toUpperCase()}
+                        </span>
 
-                      <p>
-                        {formaterMontant(
-                          categorie.depenses
-                        )}{" "}
-                        dépensés
-                      </p>
-                    </div>
-                  </div>
+                        <strong>{categorie.nom}</strong>
+                      </div>
+                    </td>
 
-                  <div className="budgets-montants">
-                    <strong>
-                      {formaterMontant(
-                        categorie.depenses
-                      )}
+                    <td>
+                      <strong>
+                        {formaterMontant(categorie.budget)}
+                      </strong>
+                    </td>
 
-                      <span>
-                        {" / "}
-                        {formaterMontant(
-                          categorie.budget
-                        )}
-                      </span>
-                    </strong>
-
-                    <button
-                      type="button"
-                      onClick={() =>
-                        ouvrirModification(categorie)
-                      }
-                    >
-                      Modifier
-                    </button>
-                  </div>
-                </div>
-
-                <div className="budgets-progression">
-                  <div className="budgets-barre">
-                    <div
+                    <td
                       className={
                         categorie.depasse
-                          ? "budgets-barre-remplissage depasse"
-                          : "budgets-barre-remplissage"
+                          ? "texte-danger"
+                          : ""
                       }
-                      style={{
-                        width: `${
-                          categorie.budget > 0
-                            ? Math.min(
-                                categorie.progression,
-                                100
-                              )
-                            : categorie.depenses > 0
-                              ? 100
-                              : 0
-                        }%`,
-                        backgroundColor:
-                          categorie.depasse
-                            ? "#d77b74"
-                            : categorie.couleur ||
-                              "#8ba58e",
-                      }}
-                    />
-                  </div>
+                    >
+                      {formaterMontant(categorie.depenses)}
+                    </td>
 
-                  <span
-                    className={
-                      categorie.depasse
-                        ? "budgets-texte-danger"
-                        : ""
-                    }
-                  >
-                    {categorie.budget > 0
-                      ? `${Math.round(
-                          categorie.progression
-                        )} %`
-                      : "Sans budget défini"}
-                  </span>
-                </div>
+                    <td>
+                      <span
+                        className={
+                          categorie.restant < 0
+                            ? "budgets-restant danger"
+                            : "budgets-restant"
+                        }
+                      >
+                        {formaterMontant(categorie.restant)}
+                      </span>
+                    </td>
 
-                <div className="budgets-ligne-bas">
-                  <span>
-                    {categorie.depasse
-                      ? `Dépassement de ${formaterMontant(
-                          Math.abs(categorie.restant)
-                        )}`
-                      : `Disponible : ${formaterMontant(
-                          categorie.restant
-                        )}`}
-                  </span>
+                    <td>
+                      <div className="budgets-progression-cellule">
+                        <div className="budgets-barre">
+                          <div
+                            className={
+                              categorie.depasse
+                                ? "budgets-remplissage danger"
+                                : "budgets-remplissage"
+                            }
+                            style={{
+                              width: `${
+                                categorie.budget > 0
+                                  ? progression
+                                  : categorie.depenses > 0
+                                  ? 100
+                                  : 0
+                              }%`,
+                            }}
+                          />
+                        </div>
 
-                  {categorie.depasse && (
-                    <span className="budgets-badge-danger">
-                      Budget dépassé
-                    </span>
-                  )}
-                </div>
-              </article>
-            ))
+                        <span>
+                          {categorie.budget > 0
+                            ? `${Math.round(
+                                categorie.progression
+                              )}%`
+                            : "—"}
+                        </span>
+                      </div>
+                    </td>
+
+                    <td>
+                      <button
+                        type="button"
+                        className="budgets-modifier"
+                        onClick={() =>
+                          ouvrirBudgetCategorie(categorie)
+                        }
+                        title={`Modifier ${categorie.nom}`}
+                        aria-label={`Modifier le budget ${categorie.nom}`}
+                      >
+                        ✎
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+
+          {budgetsFiltres.length === 0 && (
+            <p className="budgets-vide">
+              Aucune catégorie trouvée.
+            </p>
           )}
         </div>
-
-        <footer className="budgets-footer">
-          <span>
-            {budgetsFiltres.length} budget(s)
-            affiché(s)
-          </span>
-
-          <span>
-            Modifications synchronisées avec
-            Catégories et Accueil
-          </span>
-        </footer>
       </section>
 
-      {categorieSelectionnee && (
+      {modal && (
         <div
           className="budgets-modal-fond"
           onMouseDown={(event) => {
-            if (
-              event.target === event.currentTarget
-            ) {
-              fermerModification();
+            if (event.target === event.currentTarget) {
+              fermerModal();
             }
           }}
         >
@@ -395,47 +641,46 @@ function Budgets({
             aria-labelledby="budgets-modal-titre"
           >
             <h2 id="budgets-modal-titre">
-              Modifier le budget
+              {modal.type === "global"
+                ? "Modifier le budget mensuel"
+                : "Modifier le budget de la catégorie"}
             </h2>
 
             <p>
-              Catégorie :{" "}
-              <strong>
-                {categorieSelectionnee.nom}
-              </strong>
+              {modal.type === "global"
+                ? `Budget global pour ${moisEnFrancais.format(
+                    moisSelectionne
+                  )}`
+                : `Catégorie : ${modal.categorie.nom}`}
             </p>
 
             <form onSubmit={enregistrerBudget}>
-              <label htmlFor="nouveau-budget">
-                Budget mensuel prévu (€)
+              <label htmlFor="budgets-montant">
+                Montant prévu (€)
               </label>
 
               <input
-                id="nouveau-budget"
+                id="budgets-montant"
                 type="number"
                 min="0"
                 step="0.01"
-                value={nouveauBudget}
+                value={montantSaisi}
                 onChange={(event) =>
-                  setNouveauBudget(
-                    event.target.value
-                  )
+                  setMontantSaisi(event.target.value)
                 }
-                required
                 autoFocus
+                required
               />
 
               {erreur && (
-                <p className="budgets-erreur">
-                  {erreur}
-                </p>
+                <p className="budgets-erreur">{erreur}</p>
               )}
 
               <div className="budgets-modal-actions">
                 <button
                   type="button"
                   className="budgets-btn-annuler"
-                  onClick={fermerModification}
+                  onClick={fermerModal}
                 >
                   Annuler
                 </button>
