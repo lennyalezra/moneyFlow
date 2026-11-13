@@ -2,6 +2,9 @@ import "./App.css";
 import Parametres from "./pages/Parametres";
 import Categories from "./pages/Categories";
 import Statistiques from "./pages/Statistiques";
+import Budgets from "./pages/Budgets";
+import Transactions from "./pages/Transactions";
+
 import { useState, useEffect } from "react";
 
 import {
@@ -18,7 +21,9 @@ import {
   Legend,
 } from "recharts";
 
+// ==========================================
 // TRANSACTIONS DE DÉPART
+// ==========================================
 
 const transactionsData = [
   {
@@ -44,7 +49,9 @@ const transactionsData = [
   },
 ];
 
+// ==========================================
 // CATÉGORIES DE DÉPART
+// ==========================================
 
 const categoriesInitiales = [
   {
@@ -147,21 +154,32 @@ const categoriesInitiales = [
   },
 ];
 
-const COLORS = ["#455d50", "#8ba58e", "#c8b8a4", "#e8ede4"];
+const COLORS = [
+  "#455d50",
+  "#8ba58e",
+  "#c8b8a4",
+  "#e8ede4",
+];
 
+// ==========================================
 // CHARGEMENT DES CATÉGORIES
+// ==========================================
 
 function chargerCategories() {
   try {
-    const sauvegarde = localStorage.getItem("moneyflow-categories");
+    const sauvegarde = localStorage.getItem(
+      "moneyflow-categories"
+    );
 
     if (sauvegarde !== null) {
       const donnees = JSON.parse(sauvegarde);
 
       if (Array.isArray(donnees)) {
-        // Restaure les catégories manquantes une seule fois,
-        // puis respecte les modifications et suppressions.
-        if (localStorage.getItem("moneyflow-categories-v2") !== "true") {
+        if (
+          localStorage.getItem(
+            "moneyflow-categories-v2"
+          ) !== "true"
+        ) {
           const categoriesCompletes = [
             ...donnees,
             ...categoriesInitiales.filter(
@@ -169,14 +187,20 @@ function chargerCategories() {
                 !donnees.some(
                   (existante) =>
                     existante.id === initiale.id ||
-                    (existante.nom.toLowerCase() ===
-                      initiale.nom.toLowerCase() &&
-                      existante.type === initiale.type)
+                    (
+                      existante.nom.toLowerCase() ===
+                        initiale.nom.toLowerCase() &&
+                      existante.type === initiale.type
+                    )
                 )
             ),
           ];
 
-          localStorage.setItem("moneyflow-categories-v2", "true");
+          localStorage.setItem(
+            "moneyflow-categories-v2",
+            "true"
+          );
+
           return categoriesCompletes;
         }
 
@@ -184,28 +208,47 @@ function chargerCategories() {
       }
     }
   } catch (erreur) {
-    console.error("Erreur de chargement des catégories :", erreur);
+    console.error(
+      "Erreur de chargement des catégories :",
+      erreur
+    );
   }
 
-  localStorage.setItem("moneyflow-categories-v2", "true");
+  localStorage.setItem(
+    "moneyflow-categories-v2",
+    "true"
+  );
+
   return categoriesInitiales;
 }
 
+// ==========================================
 // APPLICATION
+// ==========================================
 
 function App() {
+  // ========================================
   // TRANSACTIONS
+  // ========================================
 
   const [transactions, setTransactions] = useState(() => {
     try {
-      const sauvegarde = localStorage.getItem("transactions");
+      const sauvegarde = localStorage.getItem(
+        "transactions"
+      );
 
       if (sauvegarde !== null) {
         const donnees = JSON.parse(sauvegarde);
-        if (Array.isArray(donnees)) return donnees;
+
+        if (Array.isArray(donnees)) {
+          return donnees;
+        }
       }
     } catch (erreur) {
-      console.error("Erreur de chargement des transactions :", erreur);
+      console.error(
+        "Erreur de chargement des transactions :",
+        erreur
+      );
     }
 
     return transactionsData;
@@ -214,20 +257,30 @@ function App() {
   const [nom, setNom] = useState("");
   const [categorie, setCategorie] = useState("");
   const [montant, setMontant] = useState("");
-  const [typeTransaction, setTypeTransaction] = useState("depense");
 
+  const [typeTransaction, setTypeTransaction] =
+    useState("depense");
+
+  // ========================================
   // NAVIGATION
+  // ========================================
 
   const [menuOuvert, setMenuOuvert] = useState(false);
   const [pageActive, setPageActive] = useState("accueil");
 
-  const [prenomUtilisateur, setPrenomUtilisateur] = useState(
-    () => localStorage.getItem("moneyflow-nom") || ""
+  const [prenomUtilisateur, setPrenomUtilisateur] =
+    useState(
+      () =>
+        localStorage.getItem("moneyflow-nom") || ""
+    );
+
+  // ========================================
+  // CATÉGORIES
+  // ========================================
+
+  const [categories, setCategories] = useState(
+    chargerCategories
   );
-
-  // CATÉGORIES SYNCHRONISÉES
-
-  const [categories, setCategories] = useState(chargerCategories);
 
   const categoriesDepenses = categories
     .filter((cat) => cat.type === "depense")
@@ -237,36 +290,65 @@ function App() {
     .filter((cat) => cat.type === "revenu")
     .map((cat) => cat.nom);
 
-  // BUDGET
+  // ========================================
+  // BUDGET GLOBAL SYNCHRONISÉ
+  // ========================================
 
-  const [budget, setBudget] = useState(() => {
-    const sauvegarde = localStorage.getItem("budget");
-    return sauvegarde !== null ? Number(sauvegarde) : 1200;
-  });
+  // Le budget total correspond maintenant
+  // à la somme des budgets des catégories
+  // de dépenses.
 
-  const [nouveauBudget, setNouveauBudget] = useState(String(budget));
+  const budget = categories
+    .filter((cat) => cat.type === "depense")
+    .reduce(
+      (total, cat) =>
+        total + (Number(cat.budget) || 0),
+      0
+    );
 
+  // ========================================
   // MODIFICATION DES TRANSACTIONS
+  // ========================================
 
-  const [transactionEnModification, setTransactionEnModification] =
-    useState(null);
+  const [
+    transactionEnModification,
+    setTransactionEnModification,
+  ] = useState(null);
 
   const [nomModifie, setNomModifie] = useState("");
-  const [montantModifie, setMontantModifie] = useState("");
-  const [categorieModifiee, setCategorieModifiee] = useState("");
-  const [typeModifie, setTypeModifie] = useState("depense");
-  const [erreurModification, setErreurModification] = useState("");
+  const [montantModifie, setMontantModifie] =
+    useState("");
 
+  const [categorieModifiee, setCategorieModifiee] =
+    useState("");
+
+  const [typeModifie, setTypeModifie] =
+    useState("depense");
+
+  const [
+    erreurModification,
+    setErreurModification,
+  ] = useState("");
+
+  // ========================================
   // RECHERCHE ET FILTRES
+  // ========================================
 
   const [recherche, setRecherche] = useState("");
-  const [filtreType, setFiltreType] = useState("tous");
+  const [filtreType, setFiltreType] =
+    useState("tous");
+
   const [erreur, setErreur] = useState("");
 
+  // ========================================
   // SAUVEGARDE AUTOMATIQUE
+  // ========================================
 
   useEffect(() => {
-    localStorage.setItem("transactions", JSON.stringify(transactions));
+    localStorage.setItem(
+      "transactions",
+      JSON.stringify(transactions)
+    );
   }, [transactions]);
 
   useEffect(() => {
@@ -276,20 +358,22 @@ function App() {
     );
   }, [categories]);
 
-  useEffect(() => {
-    localStorage.setItem("budget", String(budget));
-  }, [budget]);
-
+  // ========================================
   // AJOUTER UNE TRANSACTION
+  // ========================================
 
   function ajouterTransaction() {
     if (!nom.trim()) {
-      setErreur("Veuillez saisir un nom de transaction.");
+      setErreur(
+        "Veuillez saisir un nom de transaction."
+      );
       return;
     }
 
     if (!categorie.trim()) {
-      setErreur("Veuillez sélectionner une catégorie.");
+      setErreur(
+        "Veuillez sélectionner une catégorie."
+      );
       return;
     }
 
@@ -298,15 +382,23 @@ function App() {
       !Number.isFinite(Number(montant)) ||
       Number(montant) <= 0
     ) {
-      setErreur("Veuillez saisir un montant supérieur à 0.");
+      setErreur(
+        "Veuillez saisir un montant supérieur à 0."
+      );
       return;
     }
 
     const aujourdhui = new Date();
 
     const annee = aujourdhui.getFullYear();
-    const mois = String(aujourdhui.getMonth() + 1).padStart(2, "0");
-    const jour = String(aujourdhui.getDate()).padStart(2, "0");
+
+    const mois = String(
+      aujourdhui.getMonth() + 1
+    ).padStart(2, "0");
+
+    const jour = String(
+      aujourdhui.getDate()
+    ).padStart(2, "0");
 
     const dateComplete = `${annee}-${mois}-${jour}`;
 
@@ -314,10 +406,12 @@ function App() {
       id: crypto.randomUUID(),
       nom: nom.trim(),
       categorie: categorie.trim(),
+
       montant:
         typeTransaction === "depense"
           ? -Math.abs(Number(montant))
           : Math.abs(Number(montant)),
+
       date: dateComplete,
     };
 
@@ -332,7 +426,9 @@ function App() {
     setErreur("");
   }
 
+  // ========================================
   // SUPPRIMER UNE TRANSACTION
+  // ========================================
 
   function supprimerTransaction(id) {
     const confirmation = window.confirm(
@@ -342,34 +438,33 @@ function App() {
     if (!confirmation) return;
 
     setTransactions((anciennes) =>
-      anciennes.filter((transaction) => transaction.id !== id)
+      anciennes.filter(
+        (transaction) => transaction.id !== id
+      )
     );
   }
 
-  // MODIFIER LE BUDGET
-
-  function modifierBudget() {
-    if (
-      nouveauBudget.trim() === "" ||
-      !Number.isFinite(Number(nouveauBudget)) ||
-      Number(nouveauBudget) < 0
-    ) {
-      return;
-    }
-
-    setBudget(Number(nouveauBudget));
-  }
-
-  // COMMENCER LA MODIFICATION
+  // ========================================
+  // MODIFIER UNE TRANSACTION
+  // ========================================
 
   function commencerModification(transaction) {
     setTransactionEnModification(transaction.id);
+
     setNomModifie(transaction.nom);
-    setMontantModifie(String(Math.abs(transaction.montant)));
-    setCategorieModifiee(transaction.categorie);
-    setTypeModifie(
-      transaction.montant < 0 ? "depense" : "revenu"
+
+    setMontantModifie(
+      String(Math.abs(transaction.montant))
     );
+
+    setCategorieModifiee(transaction.categorie);
+
+    setTypeModifie(
+      transaction.montant < 0
+        ? "depense"
+        : "revenu"
+    );
+
     setErreurModification("");
   }
 
@@ -378,16 +473,18 @@ function App() {
     setErreurModification("");
   }
 
-  // ENREGISTRER LA MODIFICATION
-
   function enregistrerModification(id) {
     if (!nomModifie.trim()) {
-      setErreurModification("Veuillez saisir un nom.");
+      setErreurModification(
+        "Veuillez saisir un nom."
+      );
       return;
     }
 
     if (!categorieModifiee.trim()) {
-      setErreurModification("Veuillez choisir une catégorie.");
+      setErreurModification(
+        "Veuillez choisir une catégorie."
+      );
       return;
     }
 
@@ -402,47 +499,57 @@ function App() {
       return;
     }
 
-    const transactionsModifiees = transactions.map((transaction) => {
-      if (transaction.id === id) {
+    setTransactions((anciennes) =>
+      anciennes.map((transaction) => {
+        if (transaction.id !== id) {
+          return transaction;
+        }
+
         return {
           ...transaction,
+
           nom: nomModifie.trim(),
+
           categorie: categorieModifiee,
+
           montant:
             typeModifie === "depense"
               ? -Math.abs(Number(montantModifie))
               : Math.abs(Number(montantModifie)),
         };
-      }
+      })
+    );
 
-      return transaction;
-    });
-
-    setTransactions(transactionsModifiees);
     setTransactionEnModification(null);
     setErreurModification("");
   }
 
+  // ========================================
   // CALCUL DES DÉPENSES
+  // ========================================
 
   const transactionDepenses = transactions.filter(
-    (transaction) => transaction.montant < 0
+    (transaction) =>
+      Number(transaction.montant) < 0
   );
 
-  const depensesParCategorie = transactionDepenses.reduce(
-    (accumulateur, transaction) => {
-      const nomCategorie = transaction.categorie;
+  const depensesParCategorie =
+    transactionDepenses.reduce(
+      (accumulateur, transaction) => {
+        const nomCategorie = transaction.categorie;
 
-      if (!accumulateur[nomCategorie]) {
-        accumulateur[nomCategorie] = 0;
-      }
+        if (!accumulateur[nomCategorie]) {
+          accumulateur[nomCategorie] = 0;
+        }
 
-      accumulateur[nomCategorie] += Math.abs(transaction.montant);
+        accumulateur[nomCategorie] += Math.abs(
+          Number(transaction.montant)
+        );
 
-      return accumulateur;
-    },
-    {}
-  );
+        return accumulateur;
+      },
+      {}
+    );
 
   const depensesRegroupees = Object.entries(
     depensesParCategorie
@@ -452,141 +559,205 @@ function App() {
   }));
 
   const depenses = transactionDepenses.reduce(
-    (total, transaction) => total + Math.abs(transaction.montant),
+    (total, transaction) =>
+      total + Math.abs(Number(transaction.montant)),
     0
   );
 
+  // ========================================
   // CALCUL DES REVENUS
+  // ========================================
 
   const transactionRevenus = transactions.filter(
-    (transaction) => transaction.montant > 0
+    (transaction) =>
+      Number(transaction.montant) > 0
   );
 
   const revenus = transactionRevenus.reduce(
-    (total, transaction) => total + transaction.montant,
+    (total, transaction) =>
+      total + Number(transaction.montant),
     0
   );
 
   const soldeActuel = revenus - depenses;
-  const budgetRestant = budget - depenses;
 
+  // ========================================
+  // DÉPENSES DU MOIS EN COURS
+  // ========================================
+
+  const maintenant = new Date();
+
+  const moisActuel = maintenant.getMonth();
+  const anneeActuelle = maintenant.getFullYear();
+
+  const depensesDuMois = transactions
+    .filter((transaction) => {
+      const date = new Date(
+        `${transaction.date}T12:00:00`
+      );
+
+      return (
+        !Number.isNaN(date.getTime()) &&
+        date.getMonth() === moisActuel &&
+        date.getFullYear() === anneeActuelle &&
+        Number(transaction.montant) < 0
+      );
+    })
+    .reduce(
+      (total, transaction) =>
+        total + Math.abs(Number(transaction.montant)),
+      0
+    );
+
+  const budgetRestant = budget - depensesDuMois;
+
+  // ========================================
   // TRI ET RECHERCHE
+  // ========================================
 
-  const transactionsTriees = [...transactions].sort((a, b) =>
+  const transactionsTriees = [
+    ...transactions,
+  ].sort((a, b) =>
     a.date.localeCompare(b.date)
   );
 
-  const transactionsFiltrees = transactionsTriees.filter(
-    (transaction) => {
+  const transactionsFiltrees =
+    transactionsTriees.filter((transaction) => {
+      const rechercheNettoyee =
+        recherche.toLowerCase();
+
       const correspondRecherche =
         transaction.nom
           .toLowerCase()
-          .includes(recherche.toLowerCase()) ||
+          .includes(rechercheNettoyee) ||
         transaction.categorie
           .toLowerCase()
-          .includes(recherche.toLowerCase());
+          .includes(rechercheNettoyee);
 
       const correspondType =
         filtreType === "tous" ||
-        (filtreType === "depense" && transaction.montant < 0) ||
-        (filtreType === "revenu" && transaction.montant > 0);
+        (
+          filtreType === "depense" &&
+          Number(transaction.montant) < 0
+        ) ||
+        (
+          filtreType === "revenu" &&
+          Number(transaction.montant) > 0
+        );
 
       return correspondRecherche && correspondType;
-    }
-  );
+    });
 
-  const transactionsRecentes = [...transactionsFiltrees]
+  const transactionsRecentes = [
+    ...transactionsFiltrees,
+  ]
     .reverse()
     .slice(0, 5);
 
+  // ========================================
   // ÉVOLUTION DU SOLDE
+  // ========================================
 
-  const transactionsParJour = transactionsTriees.reduce(
-    (accumulateur, transaction) => {
-      if (!accumulateur[transaction.date]) {
-        accumulateur[transaction.date] = 0;
-      }
+  const transactionsParJour =
+    transactionsTriees.reduce(
+      (accumulateur, transaction) => {
+        if (!accumulateur[transaction.date]) {
+          accumulateur[transaction.date] = 0;
+        }
 
-      accumulateur[transaction.date] += transaction.montant;
+        accumulateur[transaction.date] +=
+          Number(transaction.montant);
 
-      return accumulateur;
-    },
-    {}
-  );
+        return accumulateur;
+      },
+      {}
+    );
 
   let soldeCumule = 0;
 
-  const evolutionSolde = Object.entries(transactionsParJour).map(
-    ([date, montantJour]) => {
-      soldeCumule += montantJour;
+  const evolutionSolde = Object.entries(
+    transactionsParJour
+  ).map(([date, montantJour]) => {
+    soldeCumule += montantJour;
 
-      return {
-        date,
-        solde: soldeCumule,
-      };
-    }
-  );
+    return {
+      date,
+      solde: soldeCumule,
+    };
+  });
 
+  // ========================================
   // AFFICHAGE
+  // ========================================
 
   return (
-    <div className="app">
+    <div
+      className={`app ${
+        pageActive === "budgets"
+          ? "app-budgets"
+          : pageActive === "transactions"
+          ? "app-transactions"
+          : ""
+      }`}
+    >
+      {/* SIDEBAR */}
+
       <aside className="sidebar">
         <h2>MoneyFlow</h2>
 
         <button
           className="menu-toggle"
-          onClick={() => setMenuOuvert(!menuOuvert)}
+          onClick={() =>
+            setMenuOuvert(!menuOuvert)
+          }
         >
           ☰
         </button>
 
-        <nav className={menuOuvert ? "nav-links ouvert" : "nav-links"}>
-          <a
-            href="#accueil"
-            onClick={() => setPageActive("accueil")}
-            className={
-              pageActive === "accueil" ? "lien-actif" : ""
-            }
-          >
-            Accueil
-          </a>
-
-          <a href="#transactions">Transactions</a>
-
-          <a href="#budgets">Budgets</a>
-
-          <a href="#statistiques" onClick={() => setPageActive("statistiques")}
-  className={pageActive === "statistiques" ? "lien-actif" : ""}>Statistiques</a>
-
-          <a
-            href="#categories"
-            onClick={() => setPageActive("categories")}
-            className={
-              pageActive === "categories" ? "lien-actif" : ""
-            }
-          >
-            Catégories
-          </a>
-
-          <a
-            href="#parametres"
-            onClick={() => setPageActive("parametres")}
-            className={
-              pageActive === "parametres" ? "lien-actif" : ""
-            }
-          >
-            Paramètres
-          </a>
+        <nav
+          className={
+            menuOuvert
+              ? "nav-links ouvert"
+              : "nav-links"
+          }
+        >
+          {[
+            ["accueil", "Accueil"],
+            ["transactions", "Transactions"],
+            ["budgets", "Budgets"],
+            ["statistiques", "Statistiques"],
+            ["categories", "Catégories"],
+            ["parametres", "Paramètres"],
+          ].map(([page, titre]) => (
+            <a
+              key={page}
+              href={`#${page}`}
+              onClick={() => {
+                setPageActive(page);
+                setMenuOuvert(false);
+              }}
+              className={
+                pageActive === page
+                  ? "lien-actif"
+                  : ""
+              }
+            >
+              {titre}
+            </a>
+          ))}
         </nav>
       </aside>
+
+      {/* CONTENU PRINCIPAL */}
 
       <main className="main-content">
         {pageActive === "parametres" ? (
           <Parametres
             transactions={transactions}
             setTransactions={setTransactions}
-            setPrenomUtilisateur={setPrenomUtilisateur}
+            setPrenomUtilisateur={
+              setPrenomUtilisateur
+            }
           />
         ) : pageActive === "categories" ? (
           <Categories
@@ -594,12 +765,27 @@ function App() {
             setTransactions={setTransactions}
             categories={categories}
             setCategories={setCategories}
-           />
-  ) : pageActive === "statistiques" ? (
-    <Statistiques transactions={transactions} />
-  ) : (
-    <>
-          
+          />
+        ) : pageActive === "statistiques" ? (
+          <Statistiques
+            transactions={transactions}
+          />
+        ) : pageActive === "budgets" ? (
+          <Budgets
+            transactions={transactions}
+            categories={categories}
+            setCategories={setCategories}
+          />
+        ) : pageActive === "transactions" ? (
+          <Transactions
+            transactions={transactions}
+            setTransactions={setTransactions}
+            categories={categories}
+          />
+        ) : (
+          <>
+            {/* ACCUEIL */}
+
             <h1>
               Bonjour
               {prenomUtilisateur
@@ -608,24 +794,44 @@ function App() {
               !
             </h1>
 
-            <p>Voici un aperçu de tes finances</p>
+            <p>
+              Voici un aperçu de tes finances
+            </p>
 
-            {/* CARTES STATISTIQUES */}
+            {/* CARTES */}
 
             <div className="stats-grid">
               <div className="stat-card">
                 <h3>Solde actuel</h3>
-                <p>{soldeActuel.toLocaleString("fr-FR")} €</p>
+
+                <p>
+                  {soldeActuel.toLocaleString(
+                    "fr-FR"
+                  )}{" "}
+                  €
+                </p>
               </div>
 
               <div className="stat-card">
                 <h3>Dépenses</h3>
-                <p>{depenses.toLocaleString("fr-FR")} €</p>
+
+                <p>
+                  {depenses.toLocaleString(
+                    "fr-FR"
+                  )}{" "}
+                  €
+                </p>
               </div>
 
               <div className="stat-card">
                 <h3>Revenus</h3>
-                <p>{revenus.toLocaleString("fr-FR")} €</p>
+
+                <p>
+                  {revenus.toLocaleString(
+                    "fr-FR"
+                  )}{" "}
+                  €
+                </p>
               </div>
 
               <div className="stat-card">
@@ -638,7 +844,10 @@ function App() {
                       : "budget-success"
                   }
                 >
-                  {budgetRestant.toLocaleString("fr-FR")} €
+                  {budgetRestant.toLocaleString(
+                    "fr-FR"
+                  )}{" "}
+                  €
                 </p>
 
                 <p
@@ -653,22 +862,13 @@ function App() {
                     : "Budget respecté"}
                 </p>
 
-                <div className="budget-form">
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    placeholder="Nouveau budget"
-                    value={nouveauBudget}
-                    onChange={(event) =>
-                      setNouveauBudget(event.target.value)
-                    }
-                  />
-
-                  <button onClick={modifierBudget}>
-                    Modifier
-                  </button>
-                </div>
+                <small>
+                  Budget mensuel :{" "}
+                  {budget.toLocaleString(
+                    "fr-FR"
+                  )}{" "}
+                  €
+                </small>
               </div>
             </div>
 
@@ -676,13 +876,22 @@ function App() {
 
             <div className="charts-grid">
               <div className="chart-card">
-                <h2>Évolution de ton solde</h2>
+                <h2>
+                  Évolution de ton solde
+                </h2>
 
                 {evolutionSolde.length === 0 ? (
-                  <p>Aucune transaction pour le moment</p>
+                  <p>
+                    Aucune transaction pour le moment
+                  </p>
                 ) : (
-                  <ResponsiveContainer width="100%" height={190}>
-                    <LineChart data={evolutionSolde}>
+                  <ResponsiveContainer
+                    width="100%"
+                    height={190}
+                  >
+                    <LineChart
+                      data={evolutionSolde}
+                    >
                       <CartesianGrid
                         strokeDasharray="3 3"
                         stroke="#e5e9e1"
@@ -698,6 +907,7 @@ function App() {
                       />
 
                       <YAxis />
+
                       <Tooltip />
 
                       <Line
@@ -705,7 +915,10 @@ function App() {
                         dataKey="solde"
                         stroke="#455d50"
                         strokeWidth={3}
-                        dot={{ fill: "#8ba58e", r: 5 }}
+                        dot={{
+                          fill: "#8ba58e",
+                          r: 5,
+                        }}
                         activeDot={{ r: 7 }}
                       />
                     </LineChart>
@@ -714,12 +927,19 @@ function App() {
               </div>
 
               <div className="chart-card">
-                <h2>Répartition des dépenses</h2>
+                <h2>
+                  Répartition des dépenses
+                </h2>
 
                 {depensesRegroupees.length === 0 ? (
-                  <p>Aucune dépense pour le moment</p>
+                  <p>
+                    Aucune dépense pour le moment
+                  </p>
                 ) : (
-                  <ResponsiveContainer width="100%" height={190}>
+                  <ResponsiveContainer
+                    width="100%"
+                    height={190}
+                  >
                     <PieChart>
                       <Pie
                         data={depensesRegroupees}
@@ -733,14 +953,21 @@ function App() {
                         {depensesRegroupees.map(
                           (depense, index) => (
                             <Cell
-                              key={depense.categorie}
+                              key={
+                                depense.categorie
+                              }
                               fill={
                                 categories.find(
                                   (cat) =>
-                                    cat.nom === depense.categorie &&
-                                    cat.type === "depense"
+                                    cat.nom ===
+                                      depense.categorie &&
+                                    cat.type ===
+                                      "depense"
                                 )?.couleur ||
-                                COLORS[index % COLORS.length]
+                                COLORS[
+                                  index %
+                                    COLORS.length
+                                ]
                               }
                             />
                           )
@@ -755,8 +982,12 @@ function App() {
                         iconType="circle"
                         formatter={(value) =>
                           `${value} - ${(
-                            depensesParCategorie[value] || 0
-                          ).toLocaleString("fr-FR")} €`
+                            depensesParCategorie[
+                              value
+                            ] || 0
+                          ).toLocaleString(
+                            "fr-FR"
+                          )} €`
                         }
                       />
                     </PieChart>
@@ -768,13 +999,17 @@ function App() {
             {/* AJOUTER UNE TRANSACTION */}
 
             <div className="ajout-card">
-              <h2>Ajouter une transaction</h2>
+              <h2>
+                Ajouter une transaction
+              </h2>
 
               <input
                 type="text"
                 placeholder="Nom de la transaction"
                 value={nom}
-                onChange={(event) => setNom(event.target.value)}
+                onChange={(event) =>
+                  setNom(event.target.value)
+                }
               />
 
               <input
@@ -783,49 +1018,72 @@ function App() {
                 min="0.01"
                 step="0.01"
                 value={montant}
-                onChange={(event) => setMontant(event.target.value)}
+                onChange={(event) =>
+                  setMontant(event.target.value)
+                }
               />
 
               <select
                 value={typeTransaction}
                 onChange={(event) => {
-                  setTypeTransaction(event.target.value);
+                  setTypeTransaction(
+                    event.target.value
+                  );
                   setCategorie("");
                 }}
               >
-                <option value="depense">Dépense</option>
-                <option value="revenu">Revenu</option>
+                <option value="depense">
+                  Dépense
+                </option>
+
+                <option value="revenu">
+                  Revenu
+                </option>
               </select>
 
               <select
                 value={categorie}
-                onChange={(event) => setCategorie(event.target.value)}
+                onChange={(event) =>
+                  setCategorie(event.target.value)
+                }
               >
-                <option value="">Choisir une catégorie</option>
+                <option value="">
+                  Choisir une catégorie
+                </option>
 
-                {(typeTransaction === "depense"
-                  ? categoriesDepenses
-                  : categoriesRevenus
+                {(
+                  typeTransaction === "depense"
+                    ? categoriesDepenses
+                    : categoriesRevenus
                 ).map((cat) => (
-                  <option key={cat} value={cat}>
+                  <option
+                    key={cat}
+                    value={cat}
+                  >
                     {cat}
                   </option>
                 ))}
               </select>
 
-              <button onClick={ajouterTransaction}>
+              <button
+                onClick={ajouterTransaction}
+              >
                 Ajouter une transaction
               </button>
 
               {erreur && (
-                <p className="message-erreur">{erreur}</p>
+                <p className="message-erreur">
+                  {erreur}
+                </p>
               )}
             </div>
 
             {/* TRANSACTIONS RÉCENTES */}
 
             <div className="transactions-card">
-              <h2>Transactions récentes</h2>
+              <h2>
+                Transactions récentes
+              </h2>
 
               <div className="transactions-filtres">
                 <input
@@ -833,181 +1091,250 @@ function App() {
                   placeholder="Rechercher une transaction..."
                   value={recherche}
                   onChange={(event) =>
-                    setRecherche(event.target.value)
+                    setRecherche(
+                      event.target.value
+                    )
                   }
                 />
 
                 <select
                   value={filtreType}
                   onChange={(event) =>
-                    setFiltreType(event.target.value)
+                    setFiltreType(
+                      event.target.value
+                    )
                   }
                 >
-                  <option value="tous">Toutes</option>
-                  <option value="depense">Dépenses</option>
-                  <option value="revenu">Revenus</option>
+                  <option value="tous">
+                    Toutes
+                  </option>
+
+                  <option value="depense">
+                    Dépenses
+                  </option>
+
+                  <option value="revenu">
+                    Revenus
+                  </option>
                 </select>
               </div>
 
               {transactionsRecentes.length === 0 ? (
-                <p>Aucune transaction trouvée.</p>
+                <p>
+                  Aucune transaction trouvée.
+                </p>
               ) : (
-                transactionsRecentes.map((transaction) => (
-                  <div
-                    className="transaction-item"
-                    key={transaction.id}
-                  >
-                    {transactionEnModification ===
-                    transaction.id ? (
-                      <div className="modification-form">
-                        <input
-                          type="text"
-                          placeholder="Nom"
-                          value={nomModifie}
-                          onChange={(event) =>
-                            setNomModifie(event.target.value)
-                          }
-                        />
+                transactionsRecentes.map(
+                  (transaction) => (
+                    <div
+                      className="transaction-item"
+                      key={transaction.id}
+                    >
+                      {transactionEnModification ===
+                      transaction.id ? (
+                        <div className="modification-form">
+                          <input
+                            type="text"
+                            placeholder="Nom"
+                            value={nomModifie}
+                            onChange={(event) =>
+                              setNomModifie(
+                                event.target.value
+                              )
+                            }
+                          />
 
-                        <input
-                          type="number"
-                          placeholder="Montant"
-                          min="0.01"
-                          step="0.01"
-                          value={montantModifie}
-                          onChange={(event) =>
-                            setMontantModifie(event.target.value)
-                          }
-                        />
+                          <input
+                            type="number"
+                            placeholder="Montant"
+                            min="0.01"
+                            step="0.01"
+                            value={montantModifie}
+                            onChange={(event) =>
+                              setMontantModifie(
+                                event.target.value
+                              )
+                            }
+                          />
 
-                        <select
-                          value={typeModifie}
-                          onChange={(event) => {
-                            setTypeModifie(event.target.value);
-                            setCategorieModifiee("");
-                          }}
-                        >
-                          <option value="depense">Dépense</option>
-                          <option value="revenu">Revenu</option>
-                        </select>
-
-                        <select
-                          value={categorieModifiee}
-                          onChange={(event) =>
-                            setCategorieModifiee(event.target.value)
-                          }
-                        >
-                          <option value="">
-                            Choisir une catégorie
-                          </option>
-
-                          {(typeModifie === "depense"
-                            ? categoriesDepenses
-                            : categoriesRevenus
-                          ).map((cat) => (
-                            <option key={cat} value={cat}>
-                              {cat}
+                          <select
+                            value={typeModifie}
+                            onChange={(event) => {
+                              setTypeModifie(
+                                event.target.value
+                              );
+                              setCategorieModifiee(
+                                ""
+                              );
+                            }}
+                          >
+                            <option value="depense">
+                              Dépense
                             </option>
-                          ))}
 
-                          {categorieModifiee !== "" &&
-                            !(typeModifie === "depense"
-                              ? categoriesDepenses
-                              : categoriesRevenus
-                            ).includes(categorieModifiee) && (
-                              <option value={categorieModifiee}>
-                                {categorieModifiee}
-                              </option>
-                            )}
-                        </select>
+                            <option value="revenu">
+                              Revenu
+                            </option>
+                          </select>
 
-                        {erreurModification && (
-                          <p className="message-erreur">
-                            {erreurModification}
-                          </p>
-                        )}
-
-                        <div className="transaction-actions">
-                          <button
-                            className="bouton-enregistrer"
-                            onClick={() =>
-                              enregistrerModification(
-                                transaction.id
+                          <select
+                            value={
+                              categorieModifiee
+                            }
+                            onChange={(event) =>
+                              setCategorieModifiee(
+                                event.target.value
                               )
                             }
                           >
-                            Enregistrer
-                          </button>
+                            <option value="">
+                              Choisir une catégorie
+                            </option>
 
-                          <button
-                            className="bouton-annuler"
-                            onClick={annulerModification}
-                          >
-                            Annuler
-                          </button>
+                            {(
+                              typeModifie === "depense"
+                                ? categoriesDepenses
+                                : categoriesRevenus
+                            ).map((cat) => (
+                              <option
+                                key={cat}
+                                value={cat}
+                              >
+                                {cat}
+                              </option>
+                            ))}
+
+                            {categorieModifiee !== "" &&
+                              !(
+                                typeModifie === "depense"
+                                  ? categoriesDepenses
+                                  : categoriesRevenus
+                              ).includes(
+                                categorieModifiee
+                              ) && (
+                                <option
+                                  value={
+                                    categorieModifiee
+                                  }
+                                >
+                                  {
+                                    categorieModifiee
+                                  }
+                                </option>
+                              )}
+                          </select>
+
+                          {erreurModification && (
+                            <p className="message-erreur">
+                              {
+                                erreurModification
+                              }
+                            </p>
+                          )}
+
+                          <div className="transaction-actions">
+                            <button
+                              className="bouton-enregistrer"
+                              onClick={() =>
+                                enregistrerModification(
+                                  transaction.id
+                                )
+                              }
+                            >
+                              Enregistrer
+                            </button>
+
+                            <button
+                              className="bouton-annuler"
+                              onClick={
+                                annulerModification
+                              }
+                            >
+                              Annuler
+                            </button>
+                          </div>
                         </div>
-                      </div>
-                    ) : (
-                      <>
-                        <div className="transaction-infos">
-                          <p className="transaction-nom">
-                            {transaction.nom}
-                          </p>
+                      ) : (
+                        <>
+                          <div className="transaction-infos">
+                            <p className="transaction-nom">
+                              {
+                                transaction.nom
+                              }
+                            </p>
 
-                          <p className="transaction-categorie">
-                            {transaction.categorie}
-                          </p>
+                            <p className="transaction-categorie">
+                              {
+                                transaction.categorie
+                              }
+                            </p>
 
-                          <p
-                            className={
-                              transaction.montant < 0
-                                ? "montant-negatif"
-                                : "montant-positif"
-                            }
-                          >
-                            {transaction.montant.toLocaleString(
-                              "fr-FR"
-                            )}{" "}
-                            €
-                          </p>
+                            <p
+                              className={
+                                transaction.montant <
+                                0
+                                  ? "montant-negatif"
+                                  : "montant-positif"
+                              }
+                            >
+                              {Number(
+                                transaction.montant
+                              ).toLocaleString(
+                                "fr-FR"
+                              )}{" "}
+                              €
+                            </p>
 
-                          <p className="transaction-date">
-                            {transaction.date.slice(8, 10) +
-                              "/" +
-                              transaction.date.slice(5, 7) +
-                              "/" +
-                              transaction.date.slice(0, 4)}
-                          </p>
-                        </div>
+                            <p className="transaction-date">
+                              {transaction.date.slice(
+                                8,
+                                10
+                              ) +
+                                "/" +
+                                transaction.date.slice(
+                                  5,
+                                  7
+                                ) +
+                                "/" +
+                                transaction.date.slice(
+                                  0,
+                                  4
+                                )}
+                            </p>
+                          </div>
 
-                        <div className="transaction-actions">
-                          <button
-                            className="bouton-modifier"
-                            onClick={() =>
-                              commencerModification(transaction)
-                            }
-                          >
-                            Modifier
-                          </button>
+                          <div className="transaction-actions">
+                            <button
+                              className="bouton-modifier"
+                              onClick={() =>
+                                commencerModification(
+                                  transaction
+                                )
+                              }
+                            >
+                              Modifier
+                            </button>
 
-                          <button
-                            className="bouton-supprimer"
-                            onClick={() =>
-                              supprimerTransaction(transaction.id)
-                            }
-                          >
-                            Supprimer
-                          </button>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                ))
+                            <button
+                              className="bouton-supprimer"
+                              onClick={() =>
+                                supprimerTransaction(
+                                  transaction.id
+                                )
+                              }
+                            >
+                              Supprimer
+                            </button>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  )
+                )
               )}
             </div>
           </>
         )}
-        
       </main>
     </div>
   );
