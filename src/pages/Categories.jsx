@@ -2,23 +2,6 @@
 import { useEffect, useMemo, useState } from "react";
 import "./Categories.css";
 
-const categoriesInitiales = [
-  { id: "alimentation", nom: "Alimentation", type: "depense", couleur: "#8ba58e", budget: 400 },
-  { id: "logement", nom: "Logement", type: "depense", couleur: "#a98ad0", budget: 1000 },
-  { id: "transport", nom: "Transport", type: "depense", couleur: "#79b3c6", budget: 200 },
-  { id: "loisirs", nom: "Loisirs", type: "depense", couleur: "#e7bb6a", budget: 150 },
-  { id: "sante", nom: "Santé", type: "depense", couleur: "#dd8b86", budget: 100 },
-  { id: "shopping", nom: "Shopping", type: "depense", couleur: "#c8b8a4", budget: 200 },
-  { id: "abonnements", nom: "Abonnements", type: "depense", couleur: "#739e8c", budget: 100 },
-  { id: "autre-depense", nom: "Autre", type: "depense", couleur: "#9caaa0", budget: 100 },
-
-  { id: "salaire", nom: "Salaire", type: "revenu", couleur: "#65a777", budget: 0 },
-  { id: "prime", nom: "Prime", type: "revenu", couleur: "#81b59a", budget: 0 },
-  { id: "cadeau", nom: "Cadeau", type: "revenu", couleur: "#a98ad0", budget: 0 },
-  { id: "remboursement", nom: "Remboursement", type: "revenu", couleur: "#79b3c6", budget: 0 },
-  { id: "autre-revenu", nom: "Autre", type: "revenu", couleur: "#e7bb6a", budget: 0 },
-];
-
 function formaterMontant(montant) {
   return new Intl.NumberFormat("fr-FR", {
     style: "currency",
@@ -29,11 +12,14 @@ function formaterMontant(montant) {
 function Categories({
   transactions = [],
   setTransactions,
-  categories,
-  setCategories
+  categories = [],
+  setCategories,
 }) {
-  const [formulaireOuvert, setFormulaireOuvert] = useState(false);
-  const [categorieModifiee, setCategorieModifiee] = useState(null);
+  const [formulaireOuvert, setFormulaireOuvert] =
+    useState(false);
+
+  const [categorieModifiee, setCategorieModifiee] =
+    useState(null);
 
   const [nom, setNom] = useState("");
   const [type, setType] = useState("depense");
@@ -44,12 +30,9 @@ function Categories({
   const [filtre, setFiltre] = useState("toutes");
   const [message, setMessage] = useState("");
 
-  useEffect(() => {
-    localStorage.setItem(
-      "moneyflow-categories",
-      JSON.stringify(categories)
-    );
-  }, [categories]);
+  // ========================================
+  // FERMETURE DU FORMULAIRE
+  // ========================================
 
   useEffect(() => {
     if (!formulaireOuvert) return;
@@ -63,20 +46,63 @@ function Categories({
     window.addEventListener("keydown", fermerAvecEchap);
 
     return () => {
-      window.removeEventListener("keydown", fermerAvecEchap);
+      window.removeEventListener(
+        "keydown",
+        fermerAvecEchap
+      );
     };
   }, [formulaireOuvert]);
 
+  // ========================================
+  // TRANSACTIONS DU MOIS
+  // ========================================
+
+  const transactionsDuMois = useMemo(() => {
+    const maintenant = new Date();
+
+    return transactions.filter((transaction) => {
+      if (
+        typeof transaction.date !== "string" ||
+        !/^\d{4}-\d{2}-\d{2}$/.test(transaction.date)
+      ) {
+        return false;
+      }
+
+      const date = new Date(
+        `${transaction.date}T12:00:00`
+      );
+
+      return (
+        !Number.isNaN(date.getTime()) &&
+        date.getFullYear() === maintenant.getFullYear() &&
+        date.getMonth() === maintenant.getMonth()
+      );
+    });
+  }, [transactions]);
+
+  // ========================================
+  // CALCUL DES CATÉGORIES
+  // ========================================
+
   const categoriesAvecMontants = useMemo(() => {
     return categories.map((categorie) => {
-      const transactionsCategorie = transactions.filter(
-        (transaction) =>
-          transaction.categorie?.trim().toLowerCase() ===
-            categorie.nom.trim().toLowerCase() &&
-          (categorie.type === "depense"
-            ? Number(transaction.montant) < 0
-            : Number(transaction.montant) > 0)
-      );
+      const transactionsCategorie =
+        transactionsDuMois.filter((transaction) => {
+          const memeNom =
+            transaction.categorie
+              ?.trim()
+              .toLowerCase() ===
+            categorie.nom.trim().toLowerCase();
+
+          const montant = Number(transaction.montant);
+
+          const memeType =
+            categorie.type === "depense"
+              ? montant < 0
+              : montant > 0;
+
+          return memeNom && memeType;
+        });
 
       const total = transactionsCategorie.reduce(
         (somme, transaction) =>
@@ -84,58 +110,91 @@ function Categories({
         0
       );
 
+      const budgetCategorie =
+        Number(categorie.budget) || 0;
+
       const progression =
-        categorie.type === "depense" && categorie.budget > 0
-          ? (total / categorie.budget) * 100
+        categorie.type === "depense" &&
+        budgetCategorie > 0
+          ? (total / budgetCategorie) * 100
           : 0;
 
       return {
         ...categorie,
+        budget: budgetCategorie,
         total,
         progression,
-        nombreTransactions: transactionsCategorie.length,
+        nombreTransactions:
+          transactionsCategorie.length,
       };
     });
-  }, [categories, transactions]);
+  }, [categories, transactionsDuMois]);
 
-  const depensesTotales = transactions
-    .filter((transaction) => Number(transaction.montant) < 0)
-    .reduce(
-      (somme, transaction) =>
-        somme + Math.abs(Number(transaction.montant)),
-      0
-    );
+  // ========================================
+  // RÉSUMÉ MENSUEL
+  // ========================================
 
-  const budgetTotal = categories
-    .filter((categorie) => categorie.type === "depense")
-    .reduce(
-      (somme, categorie) => somme + Number(categorie.budget),
-      0
-    );
+  const depensesTotales = useMemo(() => {
+    return transactionsDuMois
+      .filter(
+        (transaction) =>
+          Number(transaction.montant) < 0
+      )
+      .reduce(
+        (somme, transaction) =>
+          somme +
+          Math.abs(Number(transaction.montant)),
+        0
+      );
+  }, [transactionsDuMois]);
+
+  const budgetTotal = useMemo(() => {
+    return categories
+      .filter(
+        (categorie) =>
+          categorie.type === "depense"
+      )
+      .reduce(
+        (somme, categorie) =>
+          somme + (Number(categorie.budget) || 0),
+        0
+      );
+  }, [categories]);
 
   const progressionGlobale =
-    budgetTotal > 0 ? (depensesTotales / budgetTotal) * 100 : 0;
+    budgetTotal > 0
+      ? (depensesTotales / budgetTotal) * 100
+      : 0;
 
-  const categoriesFiltrees = categoriesAvecMontants.filter((categorie) => {
-  // Masquer les catégories sans transactions
-  if (
-  categorie.nombreTransactions === 0 &&
-  !categorie.personnalisee
-) {
-  return false;
-}
+  // ========================================
+  // RECHERCHE ET FILTRES
+  // ========================================
 
-  const correspondRecherche = categorie.nom
-    .toLowerCase()
-    .includes(recherche.toLowerCase());
+  const categoriesFiltrees = useMemo(() => {
+    return categoriesAvecMontants.filter(
+      (categorie) => {
+        const correspondRecherche =
+          categorie.nom
+            .toLowerCase()
+            .includes(
+              recherche.trim().toLowerCase()
+            );
 
-  const correspondFiltre =
-    filtre === "toutes" || categorie.type === filtre;
+        const correspondFiltre =
+          filtre === "toutes" ||
+          categorie.type === filtre;
 
-  return correspondRecherche && correspondFiltre;
-});
+        return (
+          correspondRecherche &&
+          correspondFiltre
+        );
+      }
+    );
+  }, [categoriesAvecMontants, recherche, filtre]);
 
-
+  // ========================================
+  // OUVERTURE DU FORMULAIRE
+  // ========================================
 
   function ouvrirAjout() {
     setCategorieModifiee(null);
@@ -143,6 +202,7 @@ function Categories({
     setType("depense");
     setCouleur("#8ba58e");
     setBudget("");
+    setMessage("");
     setFormulaireOuvert(true);
   }
 
@@ -150,10 +210,21 @@ function Categories({
     setCategorieModifiee(categorie);
     setNom(categorie.nom);
     setType(categorie.type);
-    setCouleur(categorie.couleur);
-    setBudget(String(categorie.budget));
+    setCouleur(categorie.couleur || "#8ba58e");
+    setBudget(String(categorie.budget || 0));
+    setMessage("");
     setFormulaireOuvert(true);
   }
+
+  function fermerFormulaire() {
+    setFormulaireOuvert(false);
+    setCategorieModifiee(null);
+    setMessage("");
+  }
+
+  // ========================================
+  // AJOUT ET MODIFICATION
+  // ========================================
 
   function enregistrerCategorie(event) {
     event.preventDefault();
@@ -162,28 +233,70 @@ function Categories({
     const budgetNombre = Number(budget || 0);
 
     if (!nomNettoye) {
-      setMessage("Le nom de la catégorie est obligatoire.");
+      setMessage(
+        "Le nom de la catégorie est obligatoire."
+      );
       return;
     }
 
-    if (!Number.isFinite(budgetNombre) || budgetNombre < 0) {
-      setMessage("Le budget doit être un nombre positif ou nul.");
+    if (
+      !Number.isFinite(budgetNombre) ||
+      budgetNombre < 0
+    ) {
+      setMessage(
+        "Le budget doit être un nombre positif ou nul."
+      );
       return;
     }
 
     const existeDeja = categories.some(
       (categorie) =>
-        categorie.nom.toLowerCase() === nomNettoye.toLowerCase() &&
+        categorie.nom.trim().toLowerCase() ===
+          nomNettoye.toLowerCase() &&
+        categorie.type === type &&
         categorie.id !== categorieModifiee?.id
     );
 
     if (existeDeja) {
-      setMessage("Cette catégorie existe déjà.");
+      setMessage(
+        "Une catégorie de ce type porte déjà ce nom."
+      );
       return;
     }
 
     if (categorieModifiee) {
       const ancienNom = categorieModifiee.nom;
+      const ancienType = categorieModifiee.type;
+
+      const transactionsAssociees =
+        transactions.filter((transaction) => {
+          const memeNom =
+            transaction.categorie
+              ?.trim()
+              .toLowerCase() ===
+            ancienNom.trim().toLowerCase();
+
+          const montant = Number(
+            transaction.montant
+          );
+
+          const memeType =
+            ancienType === "depense"
+              ? montant < 0
+              : montant > 0;
+
+          return memeNom && memeType;
+        });
+
+      if (
+        ancienType !== type &&
+        transactionsAssociees.length > 0
+      ) {
+        setMessage(
+          "Cette catégorie contient des transactions. Tu ne peux pas changer son type tant qu'elles lui sont associées."
+        );
+        return;
+      }
 
       setCategories((anciennes) =>
         anciennes.map((categorie) =>
@@ -193,49 +306,98 @@ function Categories({
                 nom: nomNettoye,
                 type,
                 couleur,
-                budget: type === "revenu" ? 0 : budgetNombre,
+                budget:
+                  type === "revenu"
+                    ? 0
+                    : Math.round(
+                        budgetNombre * 100
+                      ) / 100,
               }
             : categorie
         )
       );
 
-      if (setTransactions && ancienNom !== nomNettoye) {
+      if (
+        ancienNom !== nomNettoye &&
+        transactionsAssociees.length > 0
+      ) {
+        const idsAssocies = new Set(
+          transactionsAssociees.map(
+            (transaction) => transaction.id
+          )
+        );
+
         setTransactions((anciennes) =>
           anciennes.map((transaction) =>
-            transaction.categorie === ancienNom
-              ? { ...transaction, categorie: nomNettoye }
+            idsAssocies.has(transaction.id)
+              ? {
+                  ...transaction,
+                  categorie: nomNettoye,
+                }
               : transaction
           )
         );
       }
 
-      setMessage("Catégorie modifiée avec succès.");
+      fermerFormulaire();
+      setMessage(
+        "Catégorie modifiée avec succès."
+      );
     } else {
       const nouvelleCategorie = {
-  id: crypto.randomUUID(),
-  nom: nomNettoye,
-  type,
-  couleur,
-  budget: type === "revenu" ? 0 : budgetNombre,
-  personnalisee: true,
-};
+        id:
+          typeof crypto !== "undefined" &&
+          crypto.randomUUID
+            ? crypto.randomUUID()
+            : `${Date.now()}-${Math.random()}`,
+        nom: nomNettoye,
+        type,
+        couleur,
+        budget:
+          type === "revenu"
+            ? 0
+            : Math.round(
+                budgetNombre * 100
+              ) / 100,
+        personnalisee: true,
+      };
 
       setCategories((anciennes) => [
         ...anciennes,
         nouvelleCategorie,
       ]);
 
-      setMessage("Catégorie ajoutée avec succès.");
+      fermerFormulaire();
+      setMessage(
+        "Catégorie ajoutée avec succès."
+      );
     }
-
-    setFormulaireOuvert(false);
   }
+
+  // ========================================
+  // SUPPRESSION
+  // ========================================
 
   function supprimerCategorie(categorie) {
     const utilisee = transactions.some(
-      (transaction) =>
-        transaction.categorie?.toLowerCase() ===
-        categorie.nom.toLowerCase()
+      (transaction) => {
+        const memeNom =
+          transaction.categorie
+            ?.trim()
+            .toLowerCase() ===
+          categorie.nom.trim().toLowerCase();
+
+        const montant = Number(
+          transaction.montant
+        );
+
+        const memeType =
+          categorie.type === "depense"
+            ? montant < 0
+            : montant > 0;
+
+        return memeNom && memeType;
+      }
     );
 
     if (utilisee) {
@@ -246,17 +408,26 @@ function Categories({
     }
 
     const confirmation = window.confirm(
-      `Voulez-vous vraiment supprimer la catégorie "${categorie.nom}" ?`
+      `Voulez-vous vraiment supprimer la catégorie « ${categorie.nom} » ?`
     );
 
     if (!confirmation) return;
 
     setCategories((anciennes) =>
-      anciennes.filter((element) => element.id !== categorie.id)
+      anciennes.filter(
+        (element) =>
+          element.id !== categorie.id
+      )
     );
 
-    setMessage("Catégorie supprimée avec succès.");
+    setMessage(
+      "Catégorie supprimée avec succès."
+    );
   }
+
+  // ========================================
+  // AFFICHAGE
+  // ========================================
 
   return (
     <div className="categories-page">
@@ -264,7 +435,8 @@ function Categories({
         <div>
           <h1>Catégories</h1>
           <p>
-            Gère tes catégories, suis tes dépenses et définis tes budgets.
+            Gère tes catégories, suis tes dépenses
+            et définis tes budgets.
           </p>
         </div>
 
@@ -276,38 +448,65 @@ function Categories({
         </button>
       </header>
 
+      {/* RÉSUMÉ */}
+
       <section className="categories-resume">
         <article className="categories-stat">
-          <span className="categories-stat-icone">◇</span>
+          <span className="categories-stat-icone">
+            ◇
+          </span>
+
           <div>
-            <strong>{categories.length}</strong>
+            <strong>
+              {categories.length}
+            </strong>
             <p>Catégories</p>
           </div>
         </article>
 
         <article className="categories-stat">
-          <span className="categories-stat-icone">€</span>
+          <span className="categories-stat-icone">
+            €
+          </span>
+
           <div>
-            <strong>{formaterMontant(depensesTotales)}</strong>
-            <p>Dépenses totales</p>
+            <strong>
+              {formaterMontant(
+                depensesTotales
+              )}
+            </strong>
+            <p>Dépenses du mois</p>
           </div>
         </article>
 
         <article className="categories-stat">
-          <span className="categories-stat-icone">◎</span>
+          <span className="categories-stat-icone">
+            ◎
+          </span>
+
           <div>
-            <strong>{Math.round(progressionGlobale)} %</strong>
-            <p>Du budget total utilisé</p>
+            <strong>
+              {budgetTotal > 0
+                ? `${Math.round(
+                    progressionGlobale
+                  )} %`
+                : "—"}
+            </strong>
+
+            <p>Du budget mensuel utilisé</p>
           </div>
         </article>
       </section>
+
+      {/* TABLEAU DES CATÉGORIES */}
 
       <section className="categories-carte">
         <div className="categories-table-header">
           <div>
             <h2>Mes catégories</h2>
             <p>
-              Retrouve tes dépenses et tes budgets par catégorie.
+              Retrouve tes dépenses et tes budgets
+              par catégorie.
             </p>
           </div>
 
@@ -317,17 +516,27 @@ function Categories({
               placeholder="Rechercher..."
               aria-label="Rechercher une catégorie"
               value={recherche}
-              onChange={(event) => setRecherche(event.target.value)}
+              onChange={(event) =>
+                setRecherche(event.target.value)
+              }
             />
 
             <select
               value={filtre}
-              onChange={(event) => setFiltre(event.target.value)}
+              onChange={(event) =>
+                setFiltre(event.target.value)
+              }
               aria-label="Filtrer les catégories"
             >
-              <option value="toutes">Toutes</option>
-              <option value="depense">Dépenses</option>
-              <option value="revenu">Revenus</option>
+              <option value="toutes">
+                Toutes
+              </option>
+              <option value="depense">
+                Dépenses
+              </option>
+              <option value="revenu">
+                Revenus
+              </option>
             </select>
           </div>
         </div>
@@ -338,7 +547,7 @@ function Categories({
               <tr>
                 <th>Catégorie</th>
                 <th>Type</th>
-                <th>Montant</th>
+                <th>Montant du mois</th>
                 <th>Budget</th>
                 <th>Progression</th>
                 <th>Actions</th>
@@ -346,108 +555,138 @@ function Categories({
             </thead>
 
             <tbody>
-              {categoriesFiltrees.map((categorie) => (
-                <tr key={categorie.id}>
-                  <td>
-                    <div className="categories-nom">
-                      <span
-                        className="categories-pastille"
-                        style={{
-                          backgroundColor: categorie.couleur,
-                        }}
-                      >
-                        {categorie.nom.charAt(0).toUpperCase()}
-                      </span>
-
-                      <span>{categorie.nom}</span>
-                    </div>
-                  </td>
-
-                  <td>
-                    <span
-                      className={
-                        categorie.type === "revenu"
-                          ? "categories-type revenu"
-                          : "categories-type depense"
-                      }
-                    >
-                      {categorie.type === "revenu"
-                        ? "Revenu"
-                        : "Dépense"}
-                    </span>
-                  </td>
-
-                  <td>
-                    <strong
-                      className={
-                        categorie.type === "revenu"
-                          ? "categories-montant-revenu"
-                          : ""
-                      }
-                    >
-                      {categorie.type === "revenu" ? "+" : ""}
-                      {formaterMontant(categorie.total)}
-                    </strong>
-                  </td>
-
-                  <td>
-                    {categorie.type === "revenu"
-                      ? "—"
-                      : formaterMontant(categorie.budget)}
-                  </td>
-
-                  <td>
-                    {categorie.type === "revenu" ||
-                    categorie.budget === 0 ? (
-                      <span className="categories-sans-budget">—</span>
-                    ) : (
-                      <div className="categories-progression">
-                        <div className="categories-barre">
-                          <div
-                            className={
-                              categorie.progression > 100
-                                ? "categories-barre-remplissage depasse"
-                                : "categories-barre-remplissage"
-                            }
-                            style={{
-                              width: `${Math.min(
-                                categorie.progression,
-                                100
-                              )}%`,
-                            }}
-                          />
-                        </div>
+              {categoriesFiltrees.map(
+                (categorie) => (
+                  <tr key={categorie.id}>
+                    <td>
+                      <div className="categories-nom">
+                        <span
+                          className="categories-pastille"
+                          style={{
+                            backgroundColor:
+                              categorie.couleur,
+                          }}
+                        >
+                          {categorie.nom
+                            .charAt(0)
+                            .toUpperCase()}
+                        </span>
 
                         <span>
-                          {Math.round(categorie.progression)} %
+                          {categorie.nom}
                         </span>
                       </div>
-                    )}
-                  </td>
+                    </td>
 
-                  <td>
-                    <div className="categories-actions">
-                      <button
-                        className="categories-action-modifier"
-                        onClick={() => ouvrirModification(categorie)}
-                        title={`Modifier ${categorie.nom}`}
-                        aria-label={`Modifier ${categorie.nom}`}
+                    <td>
+                      <span
+                        className={
+                          categorie.type === "revenu"
+                            ? "categories-type revenu"
+                            : "categories-type depense"
+                        }
                       >
-                        ✎
-                      </button>
+                        {categorie.type === "revenu"
+                          ? "Revenu"
+                          : "Dépense"}
+                      </span>
+                    </td>
 
-                      <button
-                        className="categories-action-supprimer"
-                        onClick={() => supprimerCategorie(categorie)}
-                        title={`Supprimer ${categorie.nom}`}
-                        aria-label={`Supprimer ${categorie.nom}`}
+                    <td>
+                      <strong
+                        className={
+                          categorie.type === "revenu"
+                            ? "categories-montant-revenu"
+                            : ""
+                        }
                       >
-                        ×
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                        {categorie.type === "revenu"
+                          ? "+"
+                          : ""}
+                        {formaterMontant(
+                          categorie.total
+                        )}
+                      </strong>
+                    </td>
+
+                    <td>
+                      {categorie.type === "revenu"
+                        ? "—"
+                        : formaterMontant(
+                            categorie.budget
+                          )}
+                    </td>
+
+                    <td>
+                      {categorie.type === "revenu" ||
+                      categorie.budget === 0 ? (
+                        <span className="categories-sans-budget">
+                          —
+                        </span>
+                      ) : (
+                        <div className="categories-progression">
+                          <div className="categories-barre">
+                            <div
+                              className={
+                                categorie.progression > 100
+                                  ? "categories-barre-remplissage depasse"
+                                  : "categories-barre-remplissage"
+                              }
+                              style={{
+                                width: `${Math.min(
+                                  categorie.progression,
+                                  100
+                                )}%`,
+                                backgroundColor:
+                                  categorie.progression > 100
+                                    ? "#d77b74"
+                                    : categorie.couleur,
+                              }}
+                            />
+                          </div>
+
+                          <span>
+                            {Math.round(
+                              categorie.progression
+                            )}{" "}
+                            %
+                          </span>
+                        </div>
+                      )}
+                    </td>
+
+                    <td>
+                      <div className="categories-actions">
+                        <button
+                          className="categories-action-modifier"
+                          onClick={() =>
+                            ouvrirModification(
+                              categorie
+                            )
+                          }
+                          title={`Modifier ${categorie.nom}`}
+                          aria-label={`Modifier ${categorie.nom}`}
+                        >
+                          ✎
+                        </button>
+
+                        <button
+                          className="categories-action-supprimer"
+                          onClick={() =>
+                            supprimerCategorie(
+                              categorie
+                            )
+                          }
+                          title={`Supprimer ${categorie.nom}`}
+                          aria-label={`Supprimer ${categorie.nom}`}
+                        >
+                          ×
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                )
+              )}
             </tbody>
           </table>
 
@@ -459,13 +698,20 @@ function Categories({
         </div>
 
         <div className="categories-table-footer">
-          {categoriesFiltrees.length} catégorie(s) affichée(s)
+          {categoriesFiltrees.length} catégorie(s)
+          affichée(s)
         </div>
       </section>
 
+      {/* MESSAGE DE CONFIRMATION */}
+
       {message && (
-        <div className="categories-message" role="status">
+        <div
+          className="categories-message"
+          role="status"
+        >
           <span>{message}</span>
+
           <button
             onClick={() => setMessage("")}
             aria-label="Fermer le message"
@@ -475,12 +721,17 @@ function Categories({
         </div>
       )}
 
+      {/* FORMULAIRE AJOUT / MODIFICATION */}
+
       {formulaireOuvert && (
         <div
           className="categories-modal-fond"
           onMouseDown={(event) => {
-            if (event.target === event.currentTarget) {
-              setFormulaireOuvert(false);
+            if (
+              event.target ===
+              event.currentTarget
+            ) {
+              fermerFormulaire();
             }
           }}
         >
@@ -497,12 +748,15 @@ function Categories({
                     ? "Modifier une catégorie"
                     : "Ajouter une catégorie"}
                 </h2>
-                <p>Personnalise ta catégorie.</p>
+
+                <p>
+                  Personnalise ta catégorie.
+                </p>
               </div>
 
               <button
                 className="categories-modal-fermer"
-                onClick={() => setFormulaireOuvert(false)}
+                onClick={fermerFormulaire}
                 aria-label="Fermer"
               >
                 ×
@@ -513,32 +767,47 @@ function Categories({
               className="categories-formulaire"
               onSubmit={enregistrerCategorie}
             >
-              <label htmlFor="categorie-nom">Nom</label>
+              <label htmlFor="categorie-nom">
+                Nom
+              </label>
+
               <input
                 id="categorie-nom"
                 type="text"
                 placeholder="Ex : Shopping"
                 value={nom}
                 maxLength={35}
-                onChange={(event) => setNom(event.target.value)}
+                onChange={(event) =>
+                  setNom(event.target.value)
+                }
                 required
                 autoFocus
               />
 
-              <label htmlFor="categorie-type">Type</label>
+              <label htmlFor="categorie-type">
+                Type
+              </label>
+
               <select
                 id="categorie-type"
                 value={type}
-                onChange={(event) => setType(event.target.value)}
+                onChange={(event) =>
+                  setType(event.target.value)
+                }
               >
-                <option value="depense">Dépense</option>
-                <option value="revenu">Revenu</option>
+                <option value="depense">
+                  Dépense
+                </option>
+
+                <option value="revenu">
+                  Revenu
+                </option>
               </select>
 
               {type === "depense" && (
                 <>
                   <label htmlFor="categorie-budget">
-                    Budget prévu (€)
+                    Budget mensuel prévu (€)
                   </label>
 
                   <input
@@ -549,22 +818,30 @@ function Categories({
                     placeholder="Ex : 250"
                     value={budget}
                     onChange={(event) =>
-                      setBudget(event.target.value)
+                      setBudget(
+                        event.target.value
+                      )
                     }
                   />
                 </>
               )}
 
-              <label htmlFor="categorie-couleur">Couleur</label>
+              <label htmlFor="categorie-couleur">
+                Couleur
+              </label>
+
               <div className="categories-choix-couleur">
                 <input
                   id="categorie-couleur"
                   type="color"
                   value={couleur}
                   onChange={(event) =>
-                    setCouleur(event.target.value)
+                    setCouleur(
+                      event.target.value
+                    )
                   }
                 />
+
                 <span>{couleur}</span>
               </div>
 
@@ -572,7 +849,7 @@ function Categories({
                 <button
                   type="button"
                   className="categories-btn-annuler"
-                  onClick={() => setFormulaireOuvert(false)}
+                  onClick={fermerFormulaire}
                 >
                   Annuler
                 </button>

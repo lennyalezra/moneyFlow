@@ -8,15 +8,19 @@ const ONGLETS = [
   { id: "notifications", titre: "Notifications" },
   { id: "preferences", titre: "Préférences" },
   { id: "donnees", titre: "Données" },
-  { id: "securite", titre: "Sécurité" }
+  { id: "securite", titre: "Sécurité" },
 ];
 
 function lirePreference(cle, valeurDefaut) {
-  return localStorage.getItem(cle) ?? valeurDefaut;
+  try {
+    return localStorage.getItem(cle) ?? valeurDefaut;
+  } catch {
+    return valeurDefaut;
+  }
 }
 
 function lireNotification(cle, valeurDefaut) {
-  const valeur = localStorage.getItem(cle);
+  const valeur = lirePreference(cle, null);
   return valeur === null ? valeurDefaut : valeur === "true";
 }
 
@@ -24,23 +28,43 @@ function echapperCSV(valeur) {
   return `"${String(valeur ?? "").replace(/"/g, '""')}"`;
 }
 
-function lireLigneCSV(ligne) {
-  const cellules = [];
+function lireCSV(contenu) {
+  const lignes = [];
+  let ligne = [];
   let cellule = "";
   let entreGuillemets = false;
 
-  for (let i = 0; i < ligne.length; i++) {
-    const caractere = ligne[i];
+  for (let i = 0; i < contenu.length; i++) {
+    const caractere = contenu[i];
 
     if (caractere === '"') {
-      if (entreGuillemets && ligne[i + 1] === '"') {
+      if (entreGuillemets && contenu[i + 1] === '"') {
         cellule += '"';
         i++;
       } else {
         entreGuillemets = !entreGuillemets;
       }
     } else if (caractere === ";" && !entreGuillemets) {
-      cellules.push(cellule);
+      ligne.push(cellule);
+      cellule = "";
+    } else if (
+      (caractere === "\n" || caractere === "\r") &&
+      !entreGuillemets
+    ) {
+      if (
+        caractere === "\r" &&
+        contenu[i + 1] === "\n"
+      ) {
+        i++;
+      }
+
+      ligne.push(cellule);
+
+      if (ligne.some((valeur) => valeur.trim() !== "")) {
+        lignes.push(ligne);
+      }
+
+      ligne = [];
       cellule = "";
     } else {
       cellule += caractere;
@@ -48,42 +72,62 @@ function lireLigneCSV(ligne) {
   }
 
   if (entreGuillemets) {
-    throw new Error("Une ligne CSV contient des guillemets incorrects.");
+    throw new Error("Le fichier CSV contient des guillemets incorrects.");
   }
 
-  cellules.push(cellule);
-  return cellules;
+  ligne.push(cellule);
+
+  if (ligne.some((valeur) => valeur.trim() !== "")) {
+    lignes.push(ligne);
+  }
+
+  return lignes;
+}
+
+function dateValide(date) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    return false;
+  }
+
+  const [annee, mois, jour] = date.split("-").map(Number);
+  const resultat = new Date(Date.UTC(annee, mois - 1, jour));
+
+  return (
+    resultat.getUTCFullYear() === annee &&
+    resultat.getUTCMonth() === mois - 1 &&
+    resultat.getUTCDate() === jour
+  );
 }
 
 function Parametres({
-  transactions,
+  transactions = [],
   setTransactions,
-  setPrenomUtilisateur
+  setPrenomUtilisateur,
 }) {
   const [ongletActif, setOngletActif] = useState("compte");
 
-  const [nom, setNom] = useState(
-    () => lirePreference("moneyflow-nom", "")
+  const [nom, setNom] = useState(() =>
+    lirePreference("moneyflow-nom", "")
   );
 
-  const [theme, setTheme] = useState(
-    () => lirePreference("moneyflow-theme", "clair")
+  const [theme, setTheme] = useState(() =>
+    lirePreference("moneyflow-theme", "clair")
   );
 
-  const [devise, setDevise] = useState(
-    () => lirePreference("moneyflow-devise", "EUR")
+  const [devise, setDevise] = useState(() =>
+    lirePreference("moneyflow-devise", "EUR")
   );
 
-  const [formatDate, setFormatDate] = useState(
-    () => lirePreference("moneyflow-format-date", "fr")
+  const [formatDate, setFormatDate] = useState(() =>
+    lirePreference("moneyflow-format-date", "fr")
   );
 
-  const [alertesBudget, setAlertesBudget] = useState(
-    () => lireNotification("moneyflow-alertes-budget", true)
+  const [alertesBudget, setAlertesBudget] = useState(() =>
+    lireNotification("moneyflow-alertes-budget", true)
   );
 
-  const [resumeHebdo, setResumeHebdo] = useState(
-    () => lireNotification("moneyflow-resume-hebdo", false)
+  const [resumeHebdo, setResumeHebdo] = useState(() =>
+    lireNotification("moneyflow-resume-hebdo", false)
   );
 
   const [message, setMessage] = useState("");
@@ -135,11 +179,7 @@ function Parametres({
     }
 
     localStorage.setItem("moneyflow-nom", nouveauNom);
-
-    if (setPrenomUtilisateur) {
-      setPrenomUtilisateur(nouveauNom);
-    }
-
+    setPrenomUtilisateur?.(nouveauNom);
     setNom(nouveauNom);
     setMessage("Profil enregistré avec succès.");
   }
@@ -155,10 +195,12 @@ function Parametres({
       ...transactions.map((transaction) => [
         transaction.nom,
         transaction.categorie,
-        transaction.montant < 0 ? "Dépense" : "Revenu",
+        Number(transaction.montant) < 0
+          ? "Dépense"
+          : "Revenu",
         transaction.montant,
-        transaction.date
-      ])
+        transaction.date,
+      ]),
     ];
 
     const contenu = lignes
@@ -175,11 +217,13 @@ function Parametres({
 
     lien.href = url;
     lien.download = "moneyflow-transactions.csv";
+
     document.body.appendChild(lien);
     lien.click();
     lien.remove();
 
     setTimeout(() => URL.revokeObjectURL(url), 1000);
+
     setMessage("Export CSV préparé.");
   }
 
@@ -198,58 +242,63 @@ function Parametres({
     }
 
     try {
-      const contenu = (await fichierImport.text())
-        .replace(/^\uFEFF/, "")
-        .trim();
+      const contenu = (await fichierImport.text()).replace(
+        /^\uFEFF/,
+        ""
+      );
 
-      const lignes = contenu
-        .split(/\r?\n/)
-        .filter((ligne) => ligne.trim() !== "");
+      const lignes = lireCSV(contenu);
 
       if (lignes.length < 2) {
-        throw new Error("Le fichier ne contient aucune transaction.");
+        throw new Error(
+          "Le fichier ne contient aucune transaction."
+        );
       }
 
-      const entetes = lireLigneCSV(lignes[0]);
+      const entetes = lignes[0];
 
       if (
+        entetes.length !== 5 ||
         entetes.join(";") !==
-        "Nom;Catégorie;Type;Montant;Date"
+          "Nom;Catégorie;Type;Montant;Date"
       ) {
         throw new Error(
-          "Le fichier doit provenir de l'export MoneyFlow."
+          "Le fichier doit respecter le format CSV de MoneyFlow."
         );
       }
 
       const nouvellesTransactions = lignes
         .slice(1)
-        .map((ligne, index) => {
-          const cellules = lireLigneCSV(ligne);
-
+        .map((cellules, index) => {
           if (cellules.length !== 5) {
-            throw new Error("Une ligne du fichier est incomplète.");
+            throw new Error(
+              `Nombre de colonnes incorrect à la ligne ${index + 2}.`
+            );
           }
 
-          const [nomCSV, categorie, type, montantTexte, date] =
-            cellules;
+          const [
+            nomCSV,
+            categorieCSV,
+            typeCSV,
+            montantTexte,
+            dateCSV,
+          ] = cellules;
 
           const montant = Number(montantTexte);
 
-          const dateValide =
-            /^\d{4}-\d{2}-\d{2}$/.test(date) &&
-            !Number.isNaN(Date.parse(date)) &&
-            new Date(`${date}T00:00:00`)
-              .toLocaleDateString("en-CA") === date;
+          const montantCorrect =
+            Number.isFinite(montant) &&
+            montant !== 0 &&
+            (
+              (typeCSV === "Dépense" && montant < 0) ||
+              (typeCSV === "Revenu" && montant > 0)
+            );
 
           if (
             !nomCSV.trim() ||
-            !categorie.trim() ||
-            !Number.isFinite(montant) ||
-            montant === 0 ||
-            !dateValide ||
-            !["Dépense", "Revenu"].includes(type) ||
-            (type === "Dépense" && montant >= 0) ||
-            (type === "Revenu" && montant <= 0)
+            !categorieCSV.trim() ||
+            !montantCorrect ||
+            !dateValide(dateCSV)
           ) {
             throw new Error(
               `Transaction invalide à la ligne ${index + 2}.`
@@ -257,11 +306,15 @@ function Parametres({
           }
 
           return {
-            id: crypto.randomUUID(),
+            id:
+              typeof crypto !== "undefined" &&
+              crypto.randomUUID
+                ? crypto.randomUUID()
+                : `${Date.now()}-${index}-${Math.random()}`,
             nom: nomCSV.trim(),
-            categorie: categorie.trim(),
+            categorie: categorieCSV.trim(),
             montant,
-            date
+            date: dateCSV,
           };
         });
 
@@ -273,20 +326,25 @@ function Parametres({
 
       setTransactions((anciennes) => [
         ...anciennes,
-        ...nouvellesTransactions
+        ...nouvellesTransactions,
       ]);
 
       setFichierImport(null);
+
       setMessage(
         `${nouvellesTransactions.length} transaction(s) importée(s).`
       );
     } catch (erreur) {
-      setMessage(erreur.message || "Import impossible.");
+      setMessage(
+        erreur.message || "Impossible d'importer ce fichier."
+      );
     }
   }
 
   function reinitialiserTransactions() {
-    if (confirmation !== "REINITIALISER") return;
+    if (confirmation !== "REINITIALISER") {
+      return;
+    }
 
     const accord = window.confirm(
       "Supprimer définitivement toutes tes transactions ?"
@@ -303,7 +361,9 @@ function Parametres({
     <section className="parametres-page">
       <header className="parametres-header">
         <h1>Paramètres</h1>
-        <p>Gère ton compte, tes préférences et tes données.</p>
+        <p>
+          Gère ton compte, tes préférences et tes données.
+        </p>
       </header>
 
       <nav
@@ -328,10 +388,15 @@ function Parametres({
       </nav>
 
       <div className="parametres-contenu">
+        {/* COMPTE */}
+
         {ongletActif === "compte" && (
           <div className="parametres-carte">
             <div className="parametres-carte-titre">
-              <span className="parametres-icone">👤</span>
+              <span className="parametres-icone">
+                👤
+              </span>
+
               <div>
                 <h2>Mon compte</h2>
                 <p>Personnalise ton espace MoneyFlow.</p>
@@ -363,31 +428,34 @@ function Parametres({
                 value={nom}
                 maxLength={40}
                 placeholder="Ton prénom ou ton pseudo"
-                onChange={(event) => setNom(event.target.value)}
+                onChange={(event) =>
+                  setNom(event.target.value)
+                }
+                required
               />
 
-              <button className="parametres-bouton" type="submit">
+              <button
+                className="parametres-bouton"
+                type="submit"
+              >
                 Enregistrer les modifications
               </button>
             </form>
-
-            <div className="parametres-info">
-              <strong>À savoir</strong>
-              <p>
-                Ton profil est enregistré dans ton navigateur.
-                Un véritable compte sera ajouté avec le back-end.
-              </p>
-            </div>
           </div>
         )}
+
+        {/* APPARENCE */}
 
         {ongletActif === "apparence" && (
           <div className="parametres-carte">
             <div className="parametres-carte-titre">
-              <span className="parametres-icone">🎨</span>
+              <span className="parametres-icone">
+                ◐
+              </span>
+
               <div>
                 <h2>Apparence</h2>
-                <p>Choisis le thème de MoneyFlow.</p>
+                <p>Choisis le thème de ton application.</p>
               </div>
             </div>
 
@@ -396,22 +464,28 @@ function Parametres({
                 {
                   id: "clair",
                   titre: "Mode clair",
-                  description: "Crème et vert sauge",
-                  symbole: "☀"
+                  symbole: "☀",
+                  description: "Sauge et crème",
                 },
                 {
                   id: "sombre",
                   titre: "Mode sombre",
-                  description: "Vert profond et tons foncés",
-                  symbole: "☾"
-                }
+                  symbole: "☾",
+                  description: "Interface sombre",
+                },
+                {
+                  id: "systeme",
+                  titre: "Automatique",
+                  symbole: "◐",
+                  description: "Selon ton appareil",
+                },
               ].map((option) => (
                 <button
-                  key={option.id}
                   type="button"
+                  key={option.id}
                   className={
                     theme === option.id
-                      ? "parametres-theme selectionne"
+                      ? "parametres-theme actif"
                       : "parametres-theme"
                   }
                   onClick={() => setTheme(option.id)}
@@ -436,20 +510,29 @@ function Parametres({
             <div className="parametres-info">
               <strong>Préférence sauvegardée</strong>
               <p>
-                Le thème sélectionné sera conservé lors
-                du prochain chargement.
+                Le thème choisi est enregistré dans ton
+                navigateur. Son affichage dépend des styles
+                prévus dans ton CSS.
               </p>
             </div>
           </div>
         )}
 
+        {/* NOTIFICATIONS */}
+
         {ongletActif === "notifications" && (
           <div className="parametres-carte">
             <div className="parametres-carte-titre">
-              <span className="parametres-icone">🔔</span>
+              <span className="parametres-icone">
+                🔔
+              </span>
+
               <div>
                 <h2>Notifications</h2>
-                <p>Choisis les informations que tu veux recevoir.</p>
+                <p>
+                  Choisis les informations que tu souhaites
+                  recevoir.
+                </p>
               </div>
             </div>
 
@@ -457,8 +540,8 @@ function Parametres({
               <div>
                 <h3>Alertes de budget</h3>
                 <p>
-                  Préférence pour afficher des alertes
-                  lorsque ton budget est proche d'être dépassé.
+                  Préférence pour recevoir des alertes
+                  lorsque tes dépenses approchent du budget.
                 </p>
               </div>
 
@@ -471,6 +554,7 @@ function Parametres({
                   }
                   aria-label="Activer les alertes de budget"
                 />
+
                 <span className="parametres-switch-slider" />
               </label>
             </div>
@@ -493,6 +577,7 @@ function Parametres({
                   }
                   aria-label="Activer le résumé hebdomadaire"
                 />
+
                 <span className="parametres-switch-slider" />
               </label>
             </div>
@@ -500,71 +585,104 @@ function Parametres({
             <div className="parametres-info">
               <strong>Fonctionnalité en préparation</strong>
               <p>
-                Les choix sont sauvegardés, mais les alertes
-                automatiques et les résumés ne sont pas encore
-                programmés. Nous les relierons au tableau de bord.
+                Ces préférences sont sauvegardées, mais les
+                notifications automatiques ne sont pas encore
+                programmées.
               </p>
             </div>
           </div>
         )}
 
+        {/* PRÉFÉRENCES */}
+
         {ongletActif === "preferences" && (
           <div className="parametres-carte">
             <div className="parametres-carte-titre">
-              <span className="parametres-icone">⚙</span>
+              <span className="parametres-icone">
+                ⚙
+              </span>
+
               <div>
                 <h2>Préférences</h2>
-                <p>Personnalise l'affichage de tes finances.</p>
+                <p>
+                  Personnalise l'affichage de tes finances.
+                </p>
               </div>
             </div>
 
             <div className="parametres-preference">
-              <label htmlFor="devise">Devise préférée</label>
+              <label htmlFor="devise">
+                Devise préférée
+              </label>
+
               <select
                 id="devise"
                 value={devise}
-                onChange={(event) => setDevise(event.target.value)}
+                onChange={(event) =>
+                  setDevise(event.target.value)
+                }
               >
                 <option value="EUR">Euro (€)</option>
-                <option value="USD">Dollar américain ($)</option>
-                <option value="GBP">Livre sterling (£)</option>
+                <option value="USD">
+                  Dollar américain ($)
+                </option>
+                <option value="GBP">
+                  Livre sterling (£)
+                </option>
               </select>
             </div>
 
             <div className="parametres-preference">
-              <label htmlFor="format-date">Format de date</label>
+              <label htmlFor="format-date">
+                Format de date
+              </label>
+
               <select
                 id="format-date"
                 value={formatDate}
-                onChange={(event) => setFormatDate(event.target.value)}
+                onChange={(event) =>
+                  setFormatDate(event.target.value)
+                }
               >
-                <option value="fr">JJ/MM/AAAA</option>
-                <option value="us">MM/JJ/AAAA</option>
-                <option value="iso">AAAA-MM-JJ</option>
+                <option value="fr">
+                  JJ/MM/AAAA
+                </option>
+                <option value="us">
+                  MM/JJ/AAAA
+                </option>
+                <option value="iso">
+                  AAAA-MM-JJ
+                </option>
               </select>
             </div>
 
             <div className="parametres-info">
               <strong>Préférences enregistrées</strong>
               <p>
-                Ces réglages sont sauvegardés. Pour le moment,
-                les montants de l'accueil restent en euros et
-                les dates conservent leur affichage actuel.
-                Nous connecterons ces préférences aux composants
-                plus tard. Le choix d'une devise ne convertit
-                pas automatiquement les montants.
+                Ces réglages sont sauvegardés. Pour le
+                moment, les autres pages affichent les
+                montants en euros et les dates dans leur
+                format actuel. Changer la devise ne
+                convertit pas les montants.
               </p>
             </div>
           </div>
         )}
 
+        {/* DONNÉES */}
+
         {ongletActif === "donnees" && (
           <div className="parametres-carte">
             <div className="parametres-carte-titre">
-              <span className="parametres-icone">▤</span>
+              <span className="parametres-icone">
+                ▤
+              </span>
+
               <div>
                 <h2>Mes données</h2>
-                <p>Sauvegarde et gère tes transactions.</p>
+                <p>
+                  Sauvegarde et gère tes transactions.
+                </p>
               </div>
             </div>
 
@@ -594,8 +712,8 @@ function Parametres({
               <div>
                 <h3>Importer des transactions</h3>
                 <p>
-                  Récupère des transactions depuis un fichier
-                  CSV exporté par MoneyFlow.
+                  Récupère les transactions depuis un CSV
+                  exporté par MoneyFlow.
                 </p>
               </div>
             </div>
@@ -606,7 +724,9 @@ function Parametres({
                 accept=".csv,text/csv"
                 aria-label="Choisir un fichier CSV"
                 onChange={(event) =>
-                  setFichierImport(event.target.files?.[0] || null)
+                  setFichierImport(
+                    event.target.files?.[0] || null
+                  )
                 }
               />
 
@@ -650,7 +770,9 @@ function Parametres({
               <button
                 type="button"
                 className="parametres-bouton-danger"
-                disabled={confirmation !== "REINITIALISER"}
+                disabled={
+                  confirmation !== "REINITIALISER"
+                }
                 onClick={reinitialiserTransactions}
               >
                 Supprimer toutes mes transactions
@@ -659,34 +781,44 @@ function Parametres({
           </div>
         )}
 
+        {/* SÉCURITÉ */}
+
         {ongletActif === "securite" && (
           <div className="parametres-carte">
             <div className="parametres-carte-titre">
-              <span className="parametres-icone">♢</span>
+              <span className="parametres-icone">
+                ♢
+              </span>
+
               <div>
                 <h2>Sécurité et confidentialité</h2>
-                <p>Comprends comment tes données sont conservées.</p>
-              </div>
-            </div>
-
-            <div className="parametres-securite-ligne">
-              <span className="parametres-indicateur" />
-              <div>
-                <h3>Stockage local</h3>
                 <p>
-                  Tes transactions sont enregistrées dans
-                  le localStorage de ton navigateur.
+                  Comprends comment tes données sont conservées.
                 </p>
               </div>
             </div>
 
             <div className="parametres-securite-ligne">
               <span className="parametres-indicateur" />
+
+              <div>
+                <h3>Stockage local</h3>
+                <p>
+                  Tes transactions sont actuellement
+                  enregistrées dans le localStorage de
+                  ton navigateur.
+                </p>
+              </div>
+            </div>
+
+            <div className="parametres-securite-ligne">
+              <span className="parametres-indicateur" />
+
               <div>
                 <h3>Connexion utilisateur</h3>
                 <p>
-                  L'inscription et la connexion seront ajoutées
-                  lors du développement du back-end.
+                  L'inscription et la connexion seront
+                  ajoutées lors du développement du backend.
                 </p>
               </div>
             </div>
@@ -695,15 +827,18 @@ function Parametres({
               <strong>Important</strong>
               <p>
                 Le stockage local n'est pas un coffre-fort.
-                N'enregistre pas de données bancaires sensibles
-                dans cette version.
+                N'enregistre pas de mots de passe ou de
+                données bancaires sensibles dans cette version.
               </p>
             </div>
           </div>
         )}
 
         {message && (
-          <p className="parametres-message" role="status">
+          <p
+            className="parametres-message"
+            role="status"
+          >
             {message}
           </p>
         )}

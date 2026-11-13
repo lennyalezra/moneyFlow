@@ -8,6 +8,14 @@ const formaterMontant = (montant) =>
     currency: "EUR",
   }).format(montant);
 
+function dateAujourdhui() {
+  const maintenant = new Date();
+  const annee = maintenant.getFullYear();
+  const mois = String(maintenant.getMonth() + 1).padStart(2, "0");
+  const jour = String(maintenant.getDate()).padStart(2, "0");
+  return `${annee}-${mois}-${jour}`;
+}
+
 function Transactions({
   transactions = [],
   setTransactions,
@@ -25,17 +33,13 @@ function Transactions({
   const [montant, setMontant] = useState("");
   const [type, setType] = useState("depense");
   const [categorie, setCategorie] = useState("");
-  const [date, setDate] = useState(
-    new Date().toLocaleDateString("en-CA")
-  );
+  const [date, setDate] = useState(dateAujourdhui);
   const [erreur, setErreur] = useState("");
 
   const categoriesDisponibles = useMemo(() => {
-    const categoriesFiltrees = categories.filter(
-      (item) => item.type === type
-    );
-
-    const noms = categoriesFiltrees.map((item) => item.nom);
+    const noms = categories
+      .filter((item) => item.type === type)
+      .map((item) => item.nom);
 
     if (categorie && !noms.includes(categorie)) {
       noms.push(categorie);
@@ -87,11 +91,14 @@ function Transactions({
           `${transaction.date}T12:00:00`
         );
 
+        if (Number.isNaN(dateTransaction.getTime())) {
+          return false;
+        }
+
         if (filtrePeriode === "mois") {
           if (
             dateTransaction.getMonth() !== maintenant.getMonth() ||
-            dateTransaction.getFullYear() !==
-              maintenant.getFullYear()
+            dateTransaction.getFullYear() !== maintenant.getFullYear()
           ) {
             return false;
           }
@@ -99,15 +106,14 @@ function Transactions({
 
         if (filtrePeriode === "annee") {
           if (
-            dateTransaction.getFullYear() !==
-            maintenant.getFullYear()
+            dateTransaction.getFullYear() !== maintenant.getFullYear()
           ) {
             return false;
           }
         }
 
-        const texte = `${transaction.nom} ${transaction.categorie}`
-          .toLowerCase();
+        const texte =
+          `${transaction.nom} ${transaction.categorie}`.toLowerCase();
 
         return texte.includes(recherche.trim().toLowerCase());
       })
@@ -126,13 +132,11 @@ function Transactions({
     const groupesParDate = {};
 
     transactionsFiltrees.forEach((transaction) => {
-      const dateTransaction = transaction.date;
-
-      if (!groupesParDate[dateTransaction]) {
-        groupesParDate[dateTransaction] = [];
+      if (!groupesParDate[transaction.date]) {
+        groupesParDate[transaction.date] = [];
       }
 
-      groupesParDate[dateTransaction].push(transaction);
+      groupesParDate[transaction.date].push(transaction);
     });
 
     return Object.entries(groupesParDate).map(
@@ -168,7 +172,7 @@ function Transactions({
     setMontant("");
     setType("depense");
     setCategorie("");
-    setDate(new Date().toLocaleDateString("en-CA"));
+    setDate(dateAujourdhui());
     setErreur("");
     setModalOuverte(true);
   }
@@ -196,11 +200,19 @@ function Transactions({
     event.preventDefault();
 
     const montantNumerique = Number(montant);
+    const dateValide =
+      /^\d{4}-\d{2}-\d{2}$/.test(date) &&
+      !Number.isNaN(new Date(`${date}T12:00:00`).getTime());
 
     if (
       !nom.trim() ||
       !categorie ||
-      !date ||
+      !categories.some(
+        (item) =>
+          item.nom === categorie &&
+          item.type === type
+      ) ||
+      !dateValide ||
       !Number.isFinite(montantNumerique) ||
       montantNumerique <= 0
     ) {
@@ -229,7 +241,10 @@ function Transactions({
       );
     } else {
       const nouvelleTransaction = {
-        id: Date.now(),
+        id:
+          typeof crypto !== "undefined" && crypto.randomUUID
+            ? crypto.randomUUID()
+            : `${Date.now()}-${Math.random()}`,
         nom: nom.trim(),
         montant: montantFinal,
         categorie,
@@ -463,12 +478,8 @@ function Transactions({
         </div>
 
         <footer className="transactions-historique-footer">
-          <span>
-            Historique de tes transactions
-          </span>
-          <span>
-            Données synchronisées avec MoneyFlow
-          </span>
+          <span>Historique de tes transactions</span>
+          <span>Données enregistrées dans MoneyFlow</span>
         </footer>
       </section>
 
@@ -494,7 +505,9 @@ function Transactions({
                     ? "Modifier la transaction"
                     : "Nouvelle transaction"}
                 </h2>
-                <p>Renseigne les informations de l'opération.</p>
+                <p>
+                  Renseigne les informations de l'opération.
+                </p>
               </div>
 
               <button
@@ -538,7 +551,9 @@ function Transactions({
                 type="text"
                 placeholder="Ex : Courses"
                 value={nom}
-                onChange={(event) => setNom(event.target.value)}
+                onChange={(event) =>
+                  setNom(event.target.value)
+                }
                 required
               />
 
@@ -571,16 +586,20 @@ function Transactions({
                 }
                 required
               >
-                <option value="">Choisir une catégorie</option>
+                <option value="">
+                  Choisir une catégorie
+                </option>
 
-                {categoriesDisponibles.map((nomCategorie) => (
-                  <option
-                    value={nomCategorie}
-                    key={nomCategorie}
-                  >
-                    {nomCategorie}
-                  </option>
-                ))}
+                {categoriesDisponibles.map(
+                  (nomCategorie) => (
+                    <option
+                      value={nomCategorie}
+                      key={nomCategorie}
+                    >
+                      {nomCategorie}
+                    </option>
+                  )
+                )}
               </select>
 
               <label htmlFor="transaction-date">

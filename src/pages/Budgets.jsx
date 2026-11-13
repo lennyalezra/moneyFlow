@@ -14,7 +14,6 @@ function Budgets({
   setCategories,
 }) {
   const [recherche, setRecherche] = useState("");
-  const [periode, setPeriode] = useState("mois");
   const [categorieSelectionnee, setCategorieSelectionnee] =
     useState(null);
   const [nouveauBudget, setNouveauBudget] = useState("");
@@ -23,31 +22,26 @@ function Budgets({
   const donnees = useMemo(() => {
     const maintenant = new Date();
 
-    const transactionsFiltrees = transactions.filter((transaction) => {
-      const date = new Date(`${transaction.date}T12:00:00`);
+    const transactionsDuMois = transactions.filter(
+      (transaction) => {
+        const date = new Date(
+          `${transaction.date}T12:00:00`
+        );
 
-      if (Number.isNaN(date.getTime())) return false;
-
-      if (periode === "mois") {
         return (
+          !Number.isNaN(date.getTime()) &&
           date.getMonth() === maintenant.getMonth() &&
           date.getFullYear() === maintenant.getFullYear()
         );
       }
-
-      if (periode === "annee") {
-        return date.getFullYear() === maintenant.getFullYear();
-      }
-
-      return true;
-    });
+    );
 
     const categoriesDepenses = categories.filter(
       (categorie) => categorie.type === "depense"
     );
 
     const budgets = categoriesDepenses.map((categorie) => {
-      const depenses = transactionsFiltrees
+      const depenses = transactionsDuMois
         .filter(
           (transaction) =>
             transaction.categorie?.trim().toLowerCase() ===
@@ -61,12 +55,13 @@ function Budgets({
         );
 
       const budget = Number(categorie.budget) || 0;
+      const restant = budget - depenses;
 
       return {
         ...categorie,
         budget,
         depenses,
-        restant: budget - depenses,
+        restant,
         progression:
           budget > 0 ? (depenses / budget) * 100 : 0,
         depasse: depenses > budget,
@@ -78,8 +73,10 @@ function Budgets({
       0
     );
 
-    const depensesTotales = transactionsFiltrees
-      .filter((transaction) => Number(transaction.montant) < 0)
+    const depensesTotales = transactionsDuMois
+      .filter(
+        (transaction) => Number(transaction.montant) < 0
+      )
       .reduce(
         (total, transaction) =>
           total + Math.abs(Number(transaction.montant)),
@@ -95,10 +92,13 @@ function Budgets({
         (categorie) => categorie.depasse
       ).length,
     };
-  }, [transactions, categories, periode]);
+  }, [transactions, categories]);
 
-  const budgetsFiltres = donnees.budgets.filter((categorie) =>
-    categorie.nom.toLowerCase().includes(recherche.toLowerCase())
+  const budgetsFiltres = donnees.budgets.filter(
+    (categorie) =>
+      categorie.nom
+        .toLowerCase()
+        .includes(recherche.trim().toLowerCase())
   );
 
   function ouvrirModification(categorie) {
@@ -109,11 +109,16 @@ function Budgets({
 
   function fermerModification() {
     setCategorieSelectionnee(null);
+    setNouveauBudget("");
     setErreur("");
   }
 
   function enregistrerBudget(event) {
     event.preventDefault();
+
+    if (!categorieSelectionnee) {
+      return;
+    }
 
     const valeur = Number(nouveauBudget);
 
@@ -122,14 +127,22 @@ function Budgets({
       !Number.isFinite(valeur) ||
       valeur < 0
     ) {
-      setErreur("Saisis un budget valide, supérieur ou égal à 0.");
+      setErreur(
+        "Saisis un budget valide, supérieur ou égal à 0."
+      );
       return;
     }
+
+    const budgetArrondi =
+      Math.round(valeur * 100) / 100;
 
     setCategories((anciennes) =>
       anciennes.map((categorie) =>
         categorie.id === categorieSelectionnee.id
-          ? { ...categorie, budget: valeur }
+          ? {
+              ...categorie,
+              budget: budgetArrondi,
+            }
           : categorie
       )
     );
@@ -142,47 +155,54 @@ function Budgets({
       <header className="budgets-header">
         <div>
           <h1>Mes budgets</h1>
-          <p>Gère tes limites de dépenses et suis tes budgets.</p>
+          <p>
+            Gère tes limites de dépenses et suis tes budgets
+            mensuels.
+          </p>
         </div>
-
-        <select
-          value={periode}
-          onChange={(event) => setPeriode(event.target.value)}
-          aria-label="Choisir une période"
-        >
-          <option value="mois">Ce mois-ci</option>
-          <option value="annee">Cette année</option>
-          <option value="tout">Toutes les périodes</option>
-        </select>
       </header>
 
       <section className="budgets-resume">
         <article className="budgets-stat">
           <div className="budgets-stat-icone">◇</div>
+
           <div>
-            <strong>{formaterMontant(donnees.budgetTotal)}</strong>
-            <p>Budget total</p>
+            <strong>
+              {formaterMontant(donnees.budgetTotal)}
+            </strong>
+            <p>Budget mensuel total</p>
           </div>
         </article>
 
         <article className="budgets-stat">
-          <div className="budgets-stat-icone depense">€</div>
+          <div className="budgets-stat-icone depense">
+            €
+          </div>
+
           <div>
-            <strong>{formaterMontant(donnees.depensesTotales)}</strong>
-            <p>Dépenses</p>
+            <strong>
+              {formaterMontant(donnees.depensesTotales)}
+            </strong>
+            <p>Dépenses du mois</p>
           </div>
         </article>
 
         <article className="budgets-stat">
-          <div className="budgets-stat-icone disponible">◎</div>
+          <div className="budgets-stat-icone disponible">
+            ◎
+          </div>
+
           <div>
             <strong
               className={
-                donnees.disponible < 0 ? "budgets-texte-danger" : ""
+                donnees.disponible < 0
+                  ? "budgets-texte-danger"
+                  : ""
               }
             >
               {formaterMontant(donnees.disponible)}
             </strong>
+
             <p>Budget disponible</p>
           </div>
         </article>
@@ -193,7 +213,8 @@ function Budgets({
           <div>
             <h2>Budgets par catégorie</h2>
             <p>
-              Retrouve les dépenses et les limites de chaque catégorie.
+              Retrouve les dépenses du mois et les limites
+              de chaque catégorie.
             </p>
           </div>
 
@@ -201,14 +222,18 @@ function Budgets({
             type="search"
             placeholder="Rechercher..."
             value={recherche}
-            onChange={(event) => setRecherche(event.target.value)}
+            onChange={(event) =>
+              setRecherche(event.target.value)
+            }
+            aria-label="Rechercher un budget"
           />
         </div>
 
         {donnees.depassements > 0 && (
           <div className="budgets-alerte">
             <span>!</span>
-            {donnees.depassements} catégorie(s) ont dépassé leur budget.
+            {donnees.depassements} catégorie(s) ont dépassé
+            leur budget.
           </div>
         )}
 
@@ -228,31 +253,46 @@ function Budgets({
                     <span
                       className="budgets-pastille"
                       style={{
-                        backgroundColor: categorie.couleur,
+                        backgroundColor:
+                          categorie.couleur || "#8ba58e",
                       }}
                     >
-                      {categorie.nom.charAt(0).toUpperCase()}
+                      {categorie.nom
+                        .charAt(0)
+                        .toUpperCase()}
                     </span>
 
                     <div>
                       <h3>{categorie.nom}</h3>
+
                       <p>
-                        {formaterMontant(categorie.depenses)} dépensés
+                        {formaterMontant(
+                          categorie.depenses
+                        )}{" "}
+                        dépensés
                       </p>
                     </div>
                   </div>
 
                   <div className="budgets-montants">
                     <strong>
-                      {formaterMontant(categorie.depenses)}
+                      {formaterMontant(
+                        categorie.depenses
+                      )}
+
                       <span>
                         {" / "}
-                        {formaterMontant(categorie.budget)}
+                        {formaterMontant(
+                          categorie.budget
+                        )}
                       </span>
                     </strong>
 
                     <button
-                      onClick={() => ouvrirModification(categorie)}
+                      type="button"
+                      onClick={() =>
+                        ouvrirModification(categorie)
+                      }
                     >
                       Modifier
                     </button>
@@ -270,14 +310,19 @@ function Budgets({
                       style={{
                         width: `${
                           categorie.budget > 0
-                            ? Math.min(categorie.progression, 100)
+                            ? Math.min(
+                                categorie.progression,
+                                100
+                              )
                             : categorie.depenses > 0
-                            ? 100
-                            : 0
+                              ? 100
+                              : 0
                         }%`,
-                        backgroundColor: categorie.depasse
-                          ? "#d77b74"
-                          : categorie.couleur,
+                        backgroundColor:
+                          categorie.depasse
+                            ? "#d77b74"
+                            : categorie.couleur ||
+                              "#8ba58e",
                       }}
                     />
                   </div>
@@ -290,8 +335,10 @@ function Budgets({
                     }
                   >
                     {categorie.budget > 0
-                      ? `${Math.round(categorie.progression)} %`
-                      : "Sans limite"}
+                      ? `${Math.round(
+                          categorie.progression
+                        )} %`
+                      : "Sans budget défini"}
                   </span>
                 </div>
 
@@ -319,10 +366,13 @@ function Budgets({
 
         <footer className="budgets-footer">
           <span>
-            {budgetsFiltres.length} budget(s) affiché(s)
+            {budgetsFiltres.length} budget(s)
+            affiché(s)
           </span>
+
           <span>
-            Modifications synchronisées avec Catégories
+            Modifications synchronisées avec
+            Catégories et Accueil
           </span>
         </footer>
       </section>
@@ -331,7 +381,9 @@ function Budgets({
         <div
           className="budgets-modal-fond"
           onMouseDown={(event) => {
-            if (event.target === event.currentTarget) {
+            if (
+              event.target === event.currentTarget
+            ) {
               fermerModification();
             }
           }}
@@ -347,12 +399,15 @@ function Budgets({
             </h2>
 
             <p>
-              Catégorie : <strong>{categorieSelectionnee.nom}</strong>
+              Catégorie :{" "}
+              <strong>
+                {categorieSelectionnee.nom}
+              </strong>
             </p>
 
             <form onSubmit={enregistrerBudget}>
               <label htmlFor="nouveau-budget">
-                Budget prévu (€)
+                Budget mensuel prévu (€)
               </label>
 
               <input
@@ -362,14 +417,18 @@ function Budgets({
                 step="0.01"
                 value={nouveauBudget}
                 onChange={(event) =>
-                  setNouveauBudget(event.target.value)
+                  setNouveauBudget(
+                    event.target.value
+                  )
                 }
                 required
                 autoFocus
               />
 
               {erreur && (
-                <p className="budgets-erreur">{erreur}</p>
+                <p className="budgets-erreur">
+                  {erreur}
+                </p>
               )}
 
               <div className="budgets-modal-actions">

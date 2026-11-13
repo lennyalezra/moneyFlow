@@ -322,6 +322,2245 @@
     padding: 17px;
   }
 }
+
+.statistiques-page {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  box-sizing: border-box;
+  padding: 24px 26px;
+  background: #f6f7f3;
+  color: #263f34;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  overflow-y: auto;
+  font-family: inherit;
+}
+
+.statistiques-page * {
+  box-sizing: border-box;
+}
+
+.statistiques-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.statistiques-header h1 {
+  font-size: 30px;
+  font-weight: 750;
+  margin: 0 0 5px;
+  color: #263f34;
+}
+
+.statistiques-header p {
+  margin: 0;
+  color: #849488;
+  font-size: 14px;
+}
+
+.statistiques-header select {
+  background: #fff;
+  border: 1px solid #e4eae2;
+  border-radius: 11px;
+  padding: 11px 15px;
+  color: #455d50;
+  font-size: 13px;
+  cursor: pointer;
+  outline: none;
+}
+
+.statistiques-header select:focus {
+  border-color: #789985;
+}
+
+.statistiques-cartes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.statistiques-carte {
+  background: #fff;
+  border: 1px solid #e5eae3;
+  border-radius: 17px;
+  padding: 21px;
+  box-shadow: 0 5px 18px rgba(35, 64, 45, 0.025);
+  min-width: 0;
+}
+
+.statistiques-carte-haut {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  color: #738679;
+  font-size: 13px;
+  margin-bottom: 18px;
+}
+
+.statistiques-icone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 43px;
+  height: 43px;
+  border-radius: 12px;
+  font-size: 23px;
+  font-weight: 600;
+}
+
+.statistiques-icone.revenus {
+  color: #456d55;
+  background: #edf3ec;
+}
+
+.statistiques-icone.depenses {
+  color: #bd6f65;
+  background: #faece9;
+}
+
+.statistiques-icone.epargne {
+  color: #557c60;
+  background: #eaf1e6;
+}
+
+.statistiques-valeur {
+  display: block;
+  font-size: clamp(21px, 2vw, 29px);
+  font-weight: 750;
+  letter-spacing: -0.7px;
+  overflow-wrap: anywhere;
+}
+
+.statistiques-valeur.revenus {
+  color: #345b46;
+}
+
+.statistiques-valeur.depenses {
+  color: #bd6f65;
+}
+
+.statistiques-carte > p {
+  color: #94a197;
+  font-size: 12px;
+  margin: 9px 0 0;
+}
+
+.statistiques-graphiques {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
+  gap: 18px;
+  flex: 1;
+  min-height: 0;
+}
+
+.statistiques-bloc {
+  background: #fff;
+  border: 1px solid #e5eae3;
+  border-radius: 17px;
+  padding: 22px;
+  min-width: 0;
+  min-height: 300px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.statistiques-bloc-entete h2 {
+  color: #263f34;
+  font-size: 17px;
+  margin: 0 0 6px;
+  font-weight: 700;
+}
+
+.statistiques-bloc-entete p {
+  color: #91a094;
+  font-size: 12px;
+  margin: 0;
+}
+
+.statistiques-legende {
+  display: flex;
+  gap: 20px;
+  margin: 20px 0 10px;
+  font-size: 12px;
+  color: #738679;
+}
+
+.statistiques-legende span {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.statistiques-legende i,
+.statistiques-categorie-entete i {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.legende-revenus {
+  background: #789985;
+}
+
+.legende-depenses {
+  background: #d6a99a;
+}
+
+.statistiques-graphique {
+  flex: 1;
+  min-height: 220px;
+  width: 100%;
+  margin-top: 8px;
+}
+
+.statistiques-categories-liste {
+  margin-top: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  overflow-y: auto;
+  min-height: 0;
+  padding-right: 5px;
+}
+
+.statistiques-categorie {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.statistiques-categorie-entete {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  color: #53695b;
+}
+
+.statistiques-categorie-entete span {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.statistiques-categorie-entete strong {
+  color: #263f34;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.statistiques-barre {
+  width: 100%;
+  height: 8px;
+  background: #edf0eb;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.statistiques-barre > div {
+  height: 100%;
+  border-radius: 20px;
+  transition: width 0.3s ease;
+}
+
+.statistiques-categorie small {
+  color: #94a197;
+  font-size: 11px;
+}
+
+.statistiques-vide {
+  flex: 1;
+  min-height: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #94a197;
+  font-size: 13px;
+}
+
+.statistiques-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  color: #91a094;
+  font-size: 11px;
+}
+
+@media (max-width: 1050px) {
+  .statistiques-graphiques {
+    grid-template-columns: 1fr;
+  }
+
+  .statistiques-bloc {
+    min-height: 330px;
+  }
+
+  .statistiques-page {
+    height: auto;
+    min-height: 100%;
+    overflow: visible;
+  }
+}
+
+@media (max-width: 650px) {
+  .statistiques-page {
+    padding: 18px 14px;
+    gap: 16px;
+  }
+
+  .statistiques-header h1 {
+    font-size: 25px;
+  }
+
+  .statistiques-cartes {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .statistiques-carte {
+    padding: 17px;
+  }
+
+  .statistiques-header {
+    align-items: flex-start;
+  }
+
+  .statistiques-header select {
+    max-width: 145px;
+  }
+
+  .statistiques-bloc {
+    padding: 17px;
+  }
+}
+/* Page Statistiques sans défilement général */
+
+.statistiques-page {
+  height: 100%;
+  max-height: 100%;
+  min-height: 0;
+  padding: 16px 22px;
+  gap: 12px;
+  overflow: hidden;
+}
+
+.statistiques-header h1 {
+  font-size: 26px;
+}
+
+.statistiques-cartes {
+  gap: 12px;
+}
+
+.statistiques-carte {
+  padding: 14px 18px;
+}
+
+.statistiques-carte-haut {
+  margin-bottom: 8px;
+}
+
+.statistiques-icone {
+  width: 35px;
+  height: 35px;
+}
+
+.statistiques-valeur {
+  font-size: 23px;
+}
+
+.statistiques-graphiques {
+  gap: 12px;
+  flex: 1;
+  min-height: 0;
+}
+
+.statistiques-bloc {
+  padding: 16px 20px;
+  min-height: 0;
+}
+
+.statistiques-graphique {
+  min-height: 0;
+  flex: 1;
+}
+
+.statistiques-categories-liste {
+  gap: 12px;
+  overflow-y: auto;
+}
+
+.statistiques-footer {
+  flex-shrink: 0;
+}
+.statistiques-page {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  box-sizing: border-box;
+  padding: 24px 26px;
+  background: #f6f7f3;
+  color: #263f34;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  overflow-y: auto;
+  font-family: inherit;
+}
+
+.statistiques-page * {
+  box-sizing: border-box;
+}
+
+.statistiques-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.statistiques-header h1 {
+  font-size: 30px;
+  font-weight: 750;
+  margin: 0 0 5px;
+  color: #263f34;
+}
+
+.statistiques-header p {
+  margin: 0;
+  color: #849488;
+  font-size: 14px;
+}
+
+.statistiques-header select {
+  background: #fff;
+  border: 1px solid #e4eae2;
+  border-radius: 11px;
+  padding: 11px 15px;
+  color: #455d50;
+  font-size: 13px;
+  cursor: pointer;
+  outline: none;
+}
+
+.statistiques-header select:focus {
+  border-color: #789985;
+}
+
+.statistiques-cartes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.statistiques-carte {
+  background: #fff;
+  border: 1px solid #e5eae3;
+  border-radius: 17px;
+  padding: 21px;
+  box-shadow: 0 5px 18px rgba(35, 64, 45, 0.025);
+  min-width: 0;
+}
+
+.statistiques-carte-haut {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  color: #738679;
+  font-size: 13px;
+  margin-bottom: 18px;
+}
+
+.statistiques-icone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 43px;
+  height: 43px;
+  border-radius: 12px;
+  font-size: 23px;
+  font-weight: 600;
+}
+
+.statistiques-icone.revenus {
+  color: #456d55;
+  background: #edf3ec;
+}
+
+.statistiques-icone.depenses {
+  color: #bd6f65;
+  background: #faece9;
+}
+
+.statistiques-icone.epargne {
+  color: #557c60;
+  background: #eaf1e6;
+}
+
+.statistiques-valeur {
+  display: block;
+  font-size: clamp(21px, 2vw, 29px);
+  font-weight: 750;
+  letter-spacing: -0.7px;
+  overflow-wrap: anywhere;
+}
+
+.statistiques-valeur.revenus {
+  color: #345b46;
+}
+
+.statistiques-valeur.depenses {
+  color: #bd6f65;
+}
+
+.statistiques-carte > p {
+  color: #94a197;
+  font-size: 12px;
+  margin: 9px 0 0;
+}
+
+.statistiques-graphiques {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
+  gap: 18px;
+  flex: 1;
+  min-height: 0;
+}
+
+.statistiques-bloc {
+  background: #fff;
+  border: 1px solid #e5eae3;
+  border-radius: 17px;
+  padding: 22px;
+  min-width: 0;
+  min-height: 300px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.statistiques-bloc-entete h2 {
+  color: #263f34;
+  font-size: 17px;
+  margin: 0 0 6px;
+  font-weight: 700;
+}
+
+.statistiques-bloc-entete p {
+  color: #91a094;
+  font-size: 12px;
+  margin: 0;
+}
+
+.statistiques-legende {
+  display: flex;
+  gap: 20px;
+  margin: 20px 0 10px;
+  font-size: 12px;
+  color: #738679;
+}
+
+.statistiques-legende span {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.statistiques-legende i,
+.statistiques-categorie-entete i {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.legende-revenus {
+  background: #789985;
+}
+
+.legende-depenses {
+  background: #d6a99a;
+}
+
+.statistiques-graphique {
+  flex: 1;
+  min-height: 220px;
+  width: 100%;
+  margin-top: 8px;
+}
+
+.statistiques-categories-liste {
+  margin-top: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  overflow-y: auto;
+  min-height: 0;
+  padding-right: 5px;
+}
+
+.statistiques-categorie {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.statistiques-categorie-entete {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  color: #53695b;
+}
+
+.statistiques-categorie-entete span {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.statistiques-categorie-entete strong {
+  color: #263f34;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.statistiques-barre {
+  width: 100%;
+  height: 8px;
+  background: #edf0eb;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.statistiques-barre > div {
+  height: 100%;
+  border-radius: 20px;
+  transition: width 0.3s ease;
+}
+
+.statistiques-categorie small {
+  color: #94a197;
+  font-size: 11px;
+}
+
+.statistiques-vide {
+  flex: 1;
+  min-height: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #94a197;
+  font-size: 13px;
+}
+
+.statistiques-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  color: #91a094;
+  font-size: 11px;
+}
+
+@media (max-width: 1050px) {
+  .statistiques-graphiques {
+    grid-template-columns: 1fr;
+  }
+
+  .statistiques-bloc {
+    min-height: 330px;
+  }
+
+  .statistiques-page {
+    height: auto;
+    min-height: 100%;
+    overflow: visible;
+  }
+}
+
+@media (max-width: 650px) {
+  .statistiques-page {
+    padding: 18px 14px;
+    gap: 16px;
+  }
+
+  .statistiques-header h1 {
+    font-size: 25px;
+  }
+
+  .statistiques-cartes {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .statistiques-carte {
+    padding: 17px;
+  }
+
+  .statistiques-header {
+    align-items: flex-start;
+  }
+
+  .statistiques-header select {
+    max-width: 145px;
+  }
+
+  .statistiques-bloc {
+    padding: 17px;
+  }
+}
+/* Page Statistiques sans défilement général */
+
+.statistiques-page {
+  height: 100%;
+  max-height: 100%;
+  min-height: 0;
+  padding: 16px 22px;
+  gap: 12px;
+  overflow: hidden;
+}
+
+.statistiques-header h1 {
+  font-size: 26px;
+}
+
+.statistiques-cartes {
+  gap: 12px;
+}
+
+.statistiques-carte {
+  padding: 14px 18px;
+}
+
+.statistiques-carte-haut {
+  margin-bottom: 8px;
+}
+
+.statistiques-icone {
+  width: 35px;
+  height: 35px;
+}
+
+.statistiques-valeur {
+  font-size: 23px;
+}
+
+.statistiques-graphiques {
+  gap: 12px;
+  flex: 1;
+  min-height: 0;
+}
+
+.statistiques-bloc {
+  padding: 16px 20px;
+  min-height: 0;
+}
+
+.statistiques-graphique {
+  min-height: 0;
+  flex: 1;
+}
+
+.statistiques-categories-liste {
+  gap: 12px;
+  overflow-y: auto;
+}
+
+.statistiques-footer {
+  flex-shrink: 0;
+}
+.statistiques-page {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  box-sizing: border-box;
+  padding: 24px 26px;
+  background: #f6f7f3;
+  color: #263f34;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  overflow-y: auto;
+  font-family: inherit;
+}
+
+.statistiques-page * {
+  box-sizing: border-box;
+}
+
+.statistiques-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.statistiques-header h1 {
+  font-size: 30px;
+  font-weight: 750;
+  margin: 0 0 5px;
+  color: #263f34;
+}
+
+.statistiques-header p {
+  margin: 0;
+  color: #849488;
+  font-size: 14px;
+}
+
+.statistiques-header select {
+  background: #fff;
+  border: 1px solid #e4eae2;
+  border-radius: 11px;
+  padding: 11px 15px;
+  color: #455d50;
+  font-size: 13px;
+  cursor: pointer;
+  outline: none;
+}
+
+.statistiques-header select:focus {
+  border-color: #789985;
+}
+
+.statistiques-cartes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.statistiques-carte {
+  background: #fff;
+  border: 1px solid #e5eae3;
+  border-radius: 17px;
+  padding: 21px;
+  box-shadow: 0 5px 18px rgba(35, 64, 45, 0.025);
+  min-width: 0;
+}
+
+.statistiques-carte-haut {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  color: #738679;
+  font-size: 13px;
+  margin-bottom: 18px;
+}
+
+.statistiques-icone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 43px;
+  height: 43px;
+  border-radius: 12px;
+  font-size: 23px;
+  font-weight: 600;
+}
+
+.statistiques-icone.revenus {
+  color: #456d55;
+  background: #edf3ec;
+}
+
+.statistiques-icone.depenses {
+  color: #bd6f65;
+  background: #faece9;
+}
+
+.statistiques-icone.epargne {
+  color: #557c60;
+  background: #eaf1e6;
+}
+
+.statistiques-valeur {
+  display: block;
+  font-size: clamp(21px, 2vw, 29px);
+  font-weight: 750;
+  letter-spacing: -0.7px;
+  overflow-wrap: anywhere;
+}
+
+.statistiques-valeur.revenus {
+  color: #345b46;
+}
+
+.statistiques-valeur.depenses {
+  color: #bd6f65;
+}
+
+.statistiques-carte > p {
+  color: #94a197;
+  font-size: 12px;
+  margin: 9px 0 0;
+}
+
+.statistiques-graphiques {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
+  gap: 18px;
+  flex: 1;
+  min-height: 0;
+}
+
+.statistiques-bloc {
+  background: #fff;
+  border: 1px solid #e5eae3;
+  border-radius: 17px;
+  padding: 22px;
+  min-width: 0;
+  min-height: 300px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.statistiques-bloc-entete h2 {
+  color: #263f34;
+  font-size: 17px;
+  margin: 0 0 6px;
+  font-weight: 700;
+}
+
+.statistiques-bloc-entete p {
+  color: #91a094;
+  font-size: 12px;
+  margin: 0;
+}
+
+.statistiques-legende {
+  display: flex;
+  gap: 20px;
+  margin: 20px 0 10px;
+  font-size: 12px;
+  color: #738679;
+}
+
+.statistiques-legende span {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.statistiques-legende i,
+.statistiques-categorie-entete i {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.legende-revenus {
+  background: #789985;
+}
+
+.legende-depenses {
+  background: #d6a99a;
+}
+
+.statistiques-graphique {
+  flex: 1;
+  min-height: 220px;
+  width: 100%;
+  margin-top: 8px;
+}
+
+.statistiques-categories-liste {
+  margin-top: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  overflow-y: auto;
+  min-height: 0;
+  padding-right: 5px;
+}
+
+.statistiques-categorie {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.statistiques-categorie-entete {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  color: #53695b;
+}
+
+.statistiques-categorie-entete span {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.statistiques-categorie-entete strong {
+  color: #263f34;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.statistiques-barre {
+  width: 100%;
+  height: 8px;
+  background: #edf0eb;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.statistiques-barre > div {
+  height: 100%;
+  border-radius: 20px;
+  transition: width 0.3s ease;
+}
+
+.statistiques-categorie small {
+  color: #94a197;
+  font-size: 11px;
+}
+
+.statistiques-vide {
+  flex: 1;
+  min-height: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #94a197;
+  font-size: 13px;
+}
+
+.statistiques-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  color: #91a094;
+  font-size: 11px;
+}
+
+@media (max-width: 1050px) {
+  .statistiques-graphiques {
+    grid-template-columns: 1fr;
+  }
+
+  .statistiques-bloc {
+    min-height: 330px;
+  }
+
+  .statistiques-page {
+    height: auto;
+    min-height: 100%;
+    overflow: visible;
+  }
+}
+
+@media (max-width: 650px) {
+  .statistiques-page {
+    padding: 18px 14px;
+    gap: 16px;
+  }
+
+  .statistiques-header h1 {
+    font-size: 25px;
+  }
+
+  .statistiques-cartes {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .statistiques-carte {
+    padding: 17px;
+  }
+
+  .statistiques-header {
+    align-items: flex-start;
+  }
+
+  .statistiques-header select {
+    max-width: 145px;
+  }
+
+  .statistiques-bloc {
+    padding: 17px;
+  }
+}
+/* Page Statistiques sans défilement général */
+
+.statistiques-page {
+  height: 100%;
+  max-height: 100%;
+  min-height: 0;
+  padding: 16px 22px;
+  gap: 12px;
+  overflow: hidden;
+}
+
+.statistiques-header h1 {
+  font-size: 26px;
+}
+
+.statistiques-cartes {
+  gap: 12px;
+}
+
+.statistiques-carte {
+  padding: 14px 18px;
+}
+
+.statistiques-carte-haut {
+  margin-bottom: 8px;
+}
+
+.statistiques-icone {
+  width: 35px;
+  height: 35px;
+}
+
+.statistiques-valeur {
+  font-size: 23px;
+}
+
+.statistiques-graphiques {
+  gap: 12px;
+  flex: 1;
+  min-height: 0;
+}
+
+.statistiques-bloc {
+  padding: 16px 20px;
+  min-height: 0;
+}
+
+.statistiques-graphique {
+  min-height: 0;
+  flex: 1;
+}
+
+.statistiques-categories-liste {
+  gap: 12px;
+  overflow-y: auto;
+}
+
+.statistiques-footer {
+  flex-shrink: 0;
+}
+.statistiques-page {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  box-sizing: border-box;
+  padding: 24px 26px;
+  background: #f6f7f3;
+  color: #263f34;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  overflow-y: auto;
+  font-family: inherit;
+}
+
+.statistiques-page * {
+  box-sizing: border-box;
+}
+
+.statistiques-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.statistiques-header h1 {
+  font-size: 30px;
+  font-weight: 750;
+  margin: 0 0 5px;
+  color: #263f34;
+}
+
+.statistiques-header p {
+  margin: 0;
+  color: #849488;
+  font-size: 14px;
+}
+
+.statistiques-header select {
+  background: #fff;
+  border: 1px solid #e4eae2;
+  border-radius: 11px;
+  padding: 11px 15px;
+  color: #455d50;
+  font-size: 13px;
+  cursor: pointer;
+  outline: none;
+}
+
+.statistiques-header select:focus {
+  border-color: #789985;
+}
+
+.statistiques-cartes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.statistiques-carte {
+  background: #fff;
+  border: 1px solid #e5eae3;
+  border-radius: 17px;
+  padding: 21px;
+  box-shadow: 0 5px 18px rgba(35, 64, 45, 0.025);
+  min-width: 0;
+}
+
+.statistiques-carte-haut {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  color: #738679;
+  font-size: 13px;
+  margin-bottom: 18px;
+}
+
+.statistiques-icone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 43px;
+  height: 43px;
+  border-radius: 12px;
+  font-size: 23px;
+  font-weight: 600;
+}
+
+.statistiques-icone.revenus {
+  color: #456d55;
+  background: #edf3ec;
+}
+
+.statistiques-icone.depenses {
+  color: #bd6f65;
+  background: #faece9;
+}
+
+.statistiques-icone.epargne {
+  color: #557c60;
+  background: #eaf1e6;
+}
+
+.statistiques-valeur {
+  display: block;
+  font-size: clamp(21px, 2vw, 29px);
+  font-weight: 750;
+  letter-spacing: -0.7px;
+  overflow-wrap: anywhere;
+}
+
+.statistiques-valeur.revenus {
+  color: #345b46;
+}
+
+.statistiques-valeur.depenses {
+  color: #bd6f65;
+}
+
+.statistiques-carte > p {
+  color: #94a197;
+  font-size: 12px;
+  margin: 9px 0 0;
+}
+
+.statistiques-graphiques {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
+  gap: 18px;
+  flex: 1;
+  min-height: 0;
+}
+
+.statistiques-bloc {
+  background: #fff;
+  border: 1px solid #e5eae3;
+  border-radius: 17px;
+  padding: 22px;
+  min-width: 0;
+  min-height: 300px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.statistiques-bloc-entete h2 {
+  color: #263f34;
+  font-size: 17px;
+  margin: 0 0 6px;
+  font-weight: 700;
+}
+
+.statistiques-bloc-entete p {
+  color: #91a094;
+  font-size: 12px;
+  margin: 0;
+}
+
+.statistiques-legende {
+  display: flex;
+  gap: 20px;
+  margin: 20px 0 10px;
+  font-size: 12px;
+  color: #738679;
+}
+
+.statistiques-legende span {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.statistiques-legende i,
+.statistiques-categorie-entete i {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.legende-revenus {
+  background: #789985;
+}
+
+.legende-depenses {
+  background: #d6a99a;
+}
+
+.statistiques-graphique {
+  flex: 1;
+  min-height: 220px;
+  width: 100%;
+  margin-top: 8px;
+}
+
+.statistiques-categories-liste {
+  margin-top: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  overflow-y: auto;
+  min-height: 0;
+  padding-right: 5px;
+}
+
+.statistiques-categorie {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.statistiques-categorie-entete {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  color: #53695b;
+}
+
+.statistiques-categorie-entete span {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.statistiques-categorie-entete strong {
+  color: #263f34;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.statistiques-barre {
+  width: 100%;
+  height: 8px;
+  background: #edf0eb;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.statistiques-barre > div {
+  height: 100%;
+  border-radius: 20px;
+  transition: width 0.3s ease;
+}
+
+.statistiques-categorie small {
+  color: #94a197;
+  font-size: 11px;
+}
+
+.statistiques-vide {
+  flex: 1;
+  min-height: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #94a197;
+  font-size: 13px;
+}
+
+.statistiques-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  color: #91a094;
+  font-size: 11px;
+}
+
+@media (max-width: 1050px) {
+  .statistiques-graphiques {
+    grid-template-columns: 1fr;
+  }
+
+  .statistiques-bloc {
+    min-height: 330px;
+  }
+
+  .statistiques-page {
+    height: auto;
+    min-height: 100%;
+    overflow: visible;
+  }
+}
+
+@media (max-width: 650px) {
+  .statistiques-page {
+    padding: 18px 14px;
+    gap: 16px;
+  }
+
+  .statistiques-header h1 {
+    font-size: 25px;
+  }
+
+  .statistiques-cartes {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .statistiques-carte {
+    padding: 17px;
+  }
+
+  .statistiques-header {
+    align-items: flex-start;
+  }
+
+  .statistiques-header select {
+    max-width: 145px;
+  }
+
+  .statistiques-bloc {
+    padding: 17px;
+  }
+}
+/* Page Statistiques sans défilement général */
+
+.statistiques-page {
+  height: 100%;
+  max-height: 100%;
+  min-height: 0;
+  padding: 16px 22px;
+  gap: 12px;
+  overflow: hidden;
+}
+
+.statistiques-header h1 {
+  font-size: 26px;
+}
+
+.statistiques-cartes {
+  gap: 12px;
+}
+
+.statistiques-carte {
+  padding: 14px 18px;
+}
+
+.statistiques-carte-haut {
+  margin-bottom: 8px;
+}
+
+.statistiques-icone {
+  width: 35px;
+  height: 35px;
+}
+
+.statistiques-valeur {
+  font-size: 23px;
+}
+
+.statistiques-graphiques {
+  gap: 12px;
+  flex: 1;
+  min-height: 0;
+}
+
+.statistiques-bloc {
+  padding: 16px 20px;
+  min-height: 0;
+}
+
+.statistiques-graphique {
+  min-height: 0;
+  flex: 1;
+}
+
+.statistiques-categories-liste {
+  gap: 12px;
+  overflow-y: auto;
+}
+
+.statistiques-footer {
+  flex-shrink: 0;
+}
+.statistiques-page {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  box-sizing: border-box;
+  padding: 24px 26px;
+  background: #f6f7f3;
+  color: #263f34;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  overflow-y: auto;
+  font-family: inherit;
+}
+
+.statistiques-page * {
+  box-sizing: border-box;
+}
+
+.statistiques-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.statistiques-header h1 {
+  font-size: 30px;
+  font-weight: 750;
+  margin: 0 0 5px;
+  color: #263f34;
+}
+
+.statistiques-header p {
+  margin: 0;
+  color: #849488;
+  font-size: 14px;
+}
+
+.statistiques-header select {
+  background: #fff;
+  border: 1px solid #e4eae2;
+  border-radius: 11px;
+  padding: 11px 15px;
+  color: #455d50;
+  font-size: 13px;
+  cursor: pointer;
+  outline: none;
+}
+
+.statistiques-header select:focus {
+  border-color: #789985;
+}
+
+.statistiques-cartes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.statistiques-carte {
+  background: #fff;
+  border: 1px solid #e5eae3;
+  border-radius: 17px;
+  padding: 21px;
+  box-shadow: 0 5px 18px rgba(35, 64, 45, 0.025);
+  min-width: 0;
+}
+
+.statistiques-carte-haut {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  color: #738679;
+  font-size: 13px;
+  margin-bottom: 18px;
+}
+
+.statistiques-icone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 43px;
+  height: 43px;
+  border-radius: 12px;
+  font-size: 23px;
+  font-weight: 600;
+}
+
+.statistiques-icone.revenus {
+  color: #456d55;
+  background: #edf3ec;
+}
+
+.statistiques-icone.depenses {
+  color: #bd6f65;
+  background: #faece9;
+}
+
+.statistiques-icone.epargne {
+  color: #557c60;
+  background: #eaf1e6;
+}
+
+.statistiques-valeur {
+  display: block;
+  font-size: clamp(21px, 2vw, 29px);
+  font-weight: 750;
+  letter-spacing: -0.7px;
+  overflow-wrap: anywhere;
+}
+
+.statistiques-valeur.revenus {
+  color: #345b46;
+}
+
+.statistiques-valeur.depenses {
+  color: #bd6f65;
+}
+
+.statistiques-carte > p {
+  color: #94a197;
+  font-size: 12px;
+  margin: 9px 0 0;
+}
+
+.statistiques-graphiques {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
+  gap: 18px;
+  flex: 1;
+  min-height: 0;
+}
+
+.statistiques-bloc {
+  background: #fff;
+  border: 1px solid #e5eae3;
+  border-radius: 17px;
+  padding: 22px;
+  min-width: 0;
+  min-height: 300px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.statistiques-bloc-entete h2 {
+  color: #263f34;
+  font-size: 17px;
+  margin: 0 0 6px;
+  font-weight: 700;
+}
+
+.statistiques-bloc-entete p {
+  color: #91a094;
+  font-size: 12px;
+  margin: 0;
+}
+
+.statistiques-legende {
+  display: flex;
+  gap: 20px;
+  margin: 20px 0 10px;
+  font-size: 12px;
+  color: #738679;
+}
+
+.statistiques-legende span {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.statistiques-legende i,
+.statistiques-categorie-entete i {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.legende-revenus {
+  background: #789985;
+}
+
+.legende-depenses {
+  background: #d6a99a;
+}
+
+.statistiques-graphique {
+  flex: 1;
+  min-height: 220px;
+  width: 100%;
+  margin-top: 8px;
+}
+
+.statistiques-categories-liste {
+  margin-top: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  overflow-y: auto;
+  min-height: 0;
+  padding-right: 5px;
+}
+
+.statistiques-categorie {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.statistiques-categorie-entete {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  color: #53695b;
+}
+
+.statistiques-categorie-entete span {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.statistiques-categorie-entete strong {
+  color: #263f34;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.statistiques-barre {
+  width: 100%;
+  height: 8px;
+  background: #edf0eb;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.statistiques-barre > div {
+  height: 100%;
+  border-radius: 20px;
+  transition: width 0.3s ease;
+}
+
+.statistiques-categorie small {
+  color: #94a197;
+  font-size: 11px;
+}
+
+.statistiques-vide {
+  flex: 1;
+  min-height: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #94a197;
+  font-size: 13px;
+}
+
+.statistiques-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  color: #91a094;
+  font-size: 11px;
+}
+
+@media (max-width: 1050px) {
+  .statistiques-graphiques {
+    grid-template-columns: 1fr;
+  }
+
+  .statistiques-bloc {
+    min-height: 330px;
+  }
+
+  .statistiques-page {
+    height: auto;
+    min-height: 100%;
+    overflow: visible;
+  }
+}
+
+@media (max-width: 650px) {
+  .statistiques-page {
+    padding: 18px 14px;
+    gap: 16px;
+  }
+
+  .statistiques-header h1 {
+    font-size: 25px;
+  }
+
+  .statistiques-cartes {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .statistiques-carte {
+    padding: 17px;
+  }
+
+  .statistiques-header {
+    align-items: flex-start;
+  }
+
+  .statistiques-header select {
+    max-width: 145px;
+  }
+
+  .statistiques-bloc {
+    padding: 17px;
+  }
+}
+/* Page Statistiques sans défilement général */
+
+.statistiques-page {
+  height: 100%;
+  max-height: 100%;
+  min-height: 0;
+  padding: 16px 22px;
+  gap: 12px;
+  overflow: hidden;
+}
+
+.statistiques-header h1 {
+  font-size: 26px;
+}
+
+.statistiques-cartes {
+  gap: 12px;
+}
+
+.statistiques-carte {
+  padding: 14px 18px;
+}
+
+.statistiques-carte-haut {
+  margin-bottom: 8px;
+}
+
+.statistiques-icone {
+  width: 35px;
+  height: 35px;
+}
+
+.statistiques-valeur {
+  font-size: 23px;
+}
+
+.statistiques-graphiques {
+  gap: 12px;
+  flex: 1;
+  min-height: 0;
+}
+
+.statistiques-bloc {
+  padding: 16px 20px;
+  min-height: 0;
+}
+
+.statistiques-graphique {
+  min-height: 0;
+  flex: 1;
+}
+
+.statistiques-categories-liste {
+  gap: 12px;
+  overflow-y: auto;
+}
+
+.statistiques-footer {
+  flex-shrink: 0;
+}
+.statistiques-page {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  box-sizing: border-box;
+  padding: 24px 26px;
+  background: #f6f7f3;
+  color: #263f34;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  overflow-y: auto;
+  font-family: inherit;
+}
+
+.statistiques-page * {
+  box-sizing: border-box;
+}
+
+.statistiques-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.statistiques-header h1 {
+  font-size: 30px;
+  font-weight: 750;
+  margin: 0 0 5px;
+  color: #263f34;
+}
+
+.statistiques-header p {
+  margin: 0;
+  color: #849488;
+  font-size: 14px;
+}
+
+.statistiques-header select {
+  background: #fff;
+  border: 1px solid #e4eae2;
+  border-radius: 11px;
+  padding: 11px 15px;
+  color: #455d50;
+  font-size: 13px;
+  cursor: pointer;
+  outline: none;
+}
+
+.statistiques-header select:focus {
+  border-color: #789985;
+}
+
+.statistiques-cartes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.statistiques-carte {
+  background: #fff;
+  border: 1px solid #e5eae3;
+  border-radius: 17px;
+  padding: 21px;
+  box-shadow: 0 5px 18px rgba(35, 64, 45, 0.025);
+  min-width: 0;
+}
+
+.statistiques-carte-haut {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  color: #738679;
+  font-size: 13px;
+  margin-bottom: 18px;
+}
+
+.statistiques-icone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 43px;
+  height: 43px;
+  border-radius: 12px;
+  font-size: 23px;
+  font-weight: 600;
+}
+
+.statistiques-icone.revenus {
+  color: #456d55;
+  background: #edf3ec;
+}
+
+.statistiques-icone.depenses {
+  color: #bd6f65;
+  background: #faece9;
+}
+
+.statistiques-icone.epargne {
+  color: #557c60;
+  background: #eaf1e6;
+}
+
+.statistiques-valeur {
+  display: block;
+  font-size: clamp(21px, 2vw, 29px);
+  font-weight: 750;
+  letter-spacing: -0.7px;
+  overflow-wrap: anywhere;
+}
+
+.statistiques-valeur.revenus {
+  color: #345b46;
+}
+
+.statistiques-valeur.depenses {
+  color: #bd6f65;
+}
+
+.statistiques-carte > p {
+  color: #94a197;
+  font-size: 12px;
+  margin: 9px 0 0;
+}
+
+.statistiques-graphiques {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
+  gap: 18px;
+  flex: 1;
+  min-height: 0;
+}
+
+.statistiques-bloc {
+  background: #fff;
+  border: 1px solid #e5eae3;
+  border-radius: 17px;
+  padding: 22px;
+  min-width: 0;
+  min-height: 300px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.statistiques-bloc-entete h2 {
+  color: #263f34;
+  font-size: 17px;
+  margin: 0 0 6px;
+  font-weight: 700;
+}
+
+.statistiques-bloc-entete p {
+  color: #91a094;
+  font-size: 12px;
+  margin: 0;
+}
+
+.statistiques-legende {
+  display: flex;
+  gap: 20px;
+  margin: 20px 0 10px;
+  font-size: 12px;
+  color: #738679;
+}
+
+.statistiques-legende span {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.statistiques-legende i,
+.statistiques-categorie-entete i {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.legende-revenus {
+  background: #789985;
+}
+
+.legende-depenses {
+  background: #d6a99a;
+}
+
+.statistiques-graphique {
+  flex: 1;
+  min-height: 220px;
+  width: 100%;
+  margin-top: 8px;
+}
+
+.statistiques-categories-liste {
+  margin-top: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  overflow-y: auto;
+  min-height: 0;
+  padding-right: 5px;
+}
+
+.statistiques-categorie {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.statistiques-categorie-entete {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  color: #53695b;
+}
+
+.statistiques-categorie-entete span {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.statistiques-categorie-entete strong {
+  color: #263f34;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.statistiques-barre {
+  width: 100%;
+  height: 8px;
+  background: #edf0eb;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.statistiques-barre > div {
+  height: 100%;
+  border-radius: 20px;
+  transition: width 0.3s ease;
+}
+
+.statistiques-categorie small {
+  color: #94a197;
+  font-size: 11px;
+}
+
+.statistiques-vide {
+  flex: 1;
+  min-height: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #94a197;
+  font-size: 13px;
+}
+
+.statistiques-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  color: #91a094;
+  font-size: 11px;
+}
+
+@media (max-width: 1050px) {
+  .statistiques-graphiques {
+    grid-template-columns: 1fr;
+  }
+
+  .statistiques-bloc {
+    min-height: 330px;
+  }
+
+  .statistiques-page {
+    height: auto;
+    min-height: 100%;
+    overflow: visible;
+  }
+}
+
+@media (max-width: 650px) {
+  .statistiques-page {
+    padding: 18px 14px;
+    gap: 16px;
+  }
+
+  .statistiques-header h1 {
+    font-size: 25px;
+  }
+
+  .statistiques-cartes {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .statistiques-carte {
+    padding: 17px;
+  }
+
+  .statistiques-header {
+    align-items: flex-start;
+  }
+
+  .statistiques-header select {
+    max-width: 145px;
+  }
+
+  .statistiques-bloc {
+    padding: 17px;
+  }
+}
 /* Page Statistiques sans défilement général */
 
 .statistiques-page {

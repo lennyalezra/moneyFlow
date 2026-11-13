@@ -8,12 +8,11 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Cell,
 } from "recharts";
 
 import "./Statistiques.css";
 
-const couleurs = [
+const couleursDefaut = [
   "#455d50",
   "#8ba58e",
   "#c8b8a4",
@@ -28,58 +27,82 @@ const formaterMontant = (montant) =>
     currency: "EUR",
   }).format(montant);
 
-function Statistiques({ transactions = [] }) {
+function Statistiques({
+  transactions = [],
+  categories = [],
+}) {
   const [periode, setPeriode] = useState("mois");
 
   const donnees = useMemo(() => {
     const maintenant = new Date();
 
-    const transactionsFiltrees = transactions.filter((transaction) => {
-      const date = new Date(`${transaction.date}T12:00:00`);
-
-      if (Number.isNaN(date.getTime())) return false;
-
-      if (periode === "mois") {
-        return (
-          date.getMonth() === maintenant.getMonth() &&
-          date.getFullYear() === maintenant.getFullYear()
+    const transactionsFiltrees = transactions.filter(
+      (transaction) => {
+        const date = new Date(
+          `${transaction.date}T12:00:00`
         );
-      }
 
-      if (periode === "annee") {
-        return date.getFullYear() === maintenant.getFullYear();
-      }
+        if (Number.isNaN(date.getTime())) {
+          return false;
+        }
 
-      return true;
-    });
+        if (periode === "mois") {
+          return (
+            date.getMonth() === maintenant.getMonth() &&
+            date.getFullYear() === maintenant.getFullYear()
+          );
+        }
+
+        if (periode === "annee") {
+          return (
+            date.getFullYear() === maintenant.getFullYear()
+          );
+        }
+
+        return true;
+      }
+    );
 
     let revenus = 0;
     let depenses = 0;
 
-    const categories = {};
+    const depensesCategories = {};
     const evolution = {};
 
     transactionsFiltrees.forEach((transaction) => {
       const montant = Number(transaction.montant);
 
-      if (!Number.isFinite(montant)) return;
+      if (!Number.isFinite(montant)) {
+        return;
+      }
 
-      const date = new Date(`${transaction.date}T12:00:00`);
+      const date = new Date(
+        `${transaction.date}T12:00:00`
+      );
 
-      const cle = date.toLocaleDateString("fr-FR", {
-        year: "numeric",
-        month: "2-digit",
-        ...(periode === "mois" ? { day: "2-digit" } : {}),
-      });
+      if (Number.isNaN(date.getTime())) {
+        return;
+      }
 
       const cleTri =
         periode === "mois"
           ? transaction.date
           : transaction.date.slice(0, 7);
 
+      const dateAffichee =
+        periode === "mois"
+          ? date.toLocaleDateString("fr-FR", {
+              day: "2-digit",
+              month: "2-digit",
+            })
+          : date.toLocaleDateString("fr-FR", {
+              month: "short",
+              year: "numeric",
+            });
+
       if (!evolution[cleTri]) {
         evolution[cleTri] = {
-          date: cle,
+          date: dateAffichee,
           cleTri,
           revenus: 0,
           depenses: 0,
@@ -89,29 +112,49 @@ function Statistiques({ transactions = [] }) {
       if (montant > 0) {
         revenus += montant;
         evolution[cleTri].revenus += montant;
-      } else if (montant < 0) {
+      }
+
+      if (montant < 0) {
         const valeur = Math.abs(montant);
 
         depenses += valeur;
         evolution[cleTri].depenses += valeur;
 
-        const categorie = transaction.categorie || "Autre";
+        const nomCategorie =
+          transaction.categorie || "Autre";
 
-        categories[categorie] =
-          (categories[categorie] || 0) + valeur;
+        depensesCategories[nomCategorie] =
+          (depensesCategories[nomCategorie] || 0) +
+          valeur;
       }
     });
 
-    const evolutionGraphique = Object.values(evolution).sort(
-      (a, b) => a.cleTri.localeCompare(b.cleTri)
+    const evolutionGraphique = Object.values(
+      evolution
+    ).sort((a, b) =>
+      a.cleTri.localeCompare(b.cleTri)
     );
 
-    const repartition = Object.entries(categories)
-      .map(([nom, montant]) => ({
-        nom,
-        montant,
-        pourcentage: depenses > 0 ? (montant / depenses) * 100 : 0,
-      }))
+    const repartition = Object.entries(
+      depensesCategories
+    )
+      .map(([nom, montant]) => {
+        const categorie = categories.find(
+          (cat) =>
+            cat.nom === nom &&
+            cat.type === "depense"
+        );
+
+        return {
+          nom,
+          montant,
+          pourcentage:
+            depenses > 0
+              ? (montant / depenses) * 100
+              : 0,
+          couleur: categorie?.couleur || null,
+        };
+      })
       .sort((a, b) => b.montant - a.montant);
 
     return {
@@ -122,31 +165,39 @@ function Statistiques({ transactions = [] }) {
       repartition,
       nombreTransactions: transactionsFiltrees.length,
     };
-  }, [transactions, periode]);
+  }, [transactions, categories, periode]);
 
   return (
     <div className="statistiques-page">
       <header className="statistiques-header">
         <div>
           <h1>Statistiques</h1>
-          <p>Analyse tes finances et suis leur évolution.</p>
+          <p>
+            Analyse tes finances et suis leur évolution.
+          </p>
         </div>
 
         <select
           value={periode}
-          onChange={(event) => setPeriode(event.target.value)}
+          onChange={(event) =>
+            setPeriode(event.target.value)
+          }
           aria-label="Choisir une période"
         >
           <option value="mois">Ce mois-ci</option>
           <option value="annee">Cette année</option>
-          <option value="tout">Toutes les périodes</option>
+          <option value="tout">
+            Toutes les périodes
+          </option>
         </select>
       </header>
 
       <section className="statistiques-cartes">
         <article className="statistiques-carte">
           <div className="statistiques-carte-haut">
-            <span className="statistiques-icone revenus">↗</span>
+            <span className="statistiques-icone revenus">
+              ↗
+            </span>
             <span>Revenus</span>
           </div>
 
@@ -159,7 +210,9 @@ function Statistiques({ transactions = [] }) {
 
         <article className="statistiques-carte">
           <div className="statistiques-carte-haut">
-            <span className="statistiques-icone depenses">↘</span>
+            <span className="statistiques-icone depenses">
+              ↘
+            </span>
             <span>Dépenses</span>
           </div>
 
@@ -172,13 +225,17 @@ function Statistiques({ transactions = [] }) {
 
         <article className="statistiques-carte">
           <div className="statistiques-carte-haut">
-            <span className="statistiques-icone epargne">◇</span>
+            <span className="statistiques-icone epargne">
+              ◇
+            </span>
             <span>Épargne nette</span>
           </div>
 
           <strong
             className={`statistiques-valeur ${
-              donnees.epargne < 0 ? "depenses" : "revenus"
+              donnees.epargne < 0
+                ? "depenses"
+                : "revenus"
             }`}
           >
             {formaterMontant(donnees.epargne)}
@@ -193,16 +250,21 @@ function Statistiques({ transactions = [] }) {
           <div className="statistiques-bloc-entete">
             <div>
               <h2>Revenus et dépenses</h2>
-              <p>Comparaison sur la période sélectionnée</p>
+              <p>
+                Comparaison sur la période sélectionnée
+              </p>
             </div>
           </div>
 
           <div className="statistiques-legende">
             <span>
-              <i className="legende-revenus" /> Revenus
+              <i className="legende-revenus" />
+              Revenus
             </span>
+
             <span>
-              <i className="legende-depenses" /> Dépenses
+              <i className="legende-depenses" />
+              Dépenses
             </span>
           </div>
 
@@ -212,7 +274,10 @@ function Statistiques({ transactions = [] }) {
             </div>
           ) : (
             <div className="statistiques-graphique">
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer
+                width="100%"
+                height="100%"
+              >
                 <BarChart
                   data={donnees.evolutionGraphique}
                   barGap={5}
@@ -223,18 +288,27 @@ function Statistiques({ transactions = [] }) {
                     vertical={false}
                     stroke="#edf0eb"
                   />
+
                   <XAxis
                     dataKey="date"
-                    tick={{ fill: "#849488", fontSize: 11 }}
+                    tick={{
+                      fill: "#849488",
+                      fontSize: 11,
+                    }}
                     axisLine={false}
                     tickLine={false}
                   />
+
                   <YAxis
-                    tick={{ fill: "#849488", fontSize: 11 }}
+                    tick={{
+                      fill: "#849488",
+                      fontSize: 11,
+                    }}
                     axisLine={false}
                     tickLine={false}
                     width={48}
                   />
+
                   <Tooltip
                     formatter={(valeur) =>
                       formaterMontant(Number(valeur))
@@ -244,6 +318,7 @@ function Statistiques({ transactions = [] }) {
                       border: "1px solid #e5eae3",
                     }}
                   />
+
                   <Bar
                     dataKey="revenus"
                     name="Revenus"
@@ -251,6 +326,7 @@ function Statistiques({ transactions = [] }) {
                     radius={[5, 5, 0, 0]}
                     maxBarSize={32}
                   />
+
                   <Bar
                     dataKey="depenses"
                     name="Dépenses"
@@ -278,41 +354,55 @@ function Statistiques({ transactions = [] }) {
             </div>
           ) : (
             <div className="statistiques-categories-liste">
-              {donnees.repartition.map((categorie, index) => (
-                <div
-                  className="statistiques-categorie"
-                  key={categorie.nom}
-                >
-                  <div className="statistiques-categorie-entete">
-                    <span>
-                      <i
-                        style={{
-                          backgroundColor:
-                            couleurs[index % couleurs.length],
-                        }}
-                      />
-                      {categorie.nom}
-                    </span>
-                    <strong>
-                      {formaterMontant(categorie.montant)}
-                    </strong>
-                  </div>
+              {donnees.repartition.map(
+                (categorie, index) => {
+                  const couleur =
+                    categorie.couleur ||
+                    couleursDefaut[
+                      index % couleursDefaut.length
+                    ];
 
-                  <div className="statistiques-barre">
+                  return (
                     <div
-                      style={{
-                        width: `${categorie.pourcentage}%`,
-                        backgroundColor:
-                          couleurs[index % couleurs.length],
-                      }}
-                    />
-                  </div>
+                      className="statistiques-categorie"
+                      key={categorie.nom}
+                    >
+                      <div className="statistiques-categorie-entete">
+                        <span>
+                          <i
+                            style={{
+                              backgroundColor: couleur,
+                            }}
+                          />
+                          {categorie.nom}
+                        </span>
 
-                  <small>
-                    {Math.round(categorie.pourcentage)} % des dépenses
-                  </small>
-                </div>
-              ))}
+                        <strong>
+                          {formaterMontant(
+                            categorie.montant
+                          )}
+                        </strong>
+                      </div>
+
+                      <div className="statistiques-barre">
+                        <div
+                          style={{
+                            width: `${categorie.pourcentage}%`,
+                            backgroundColor: couleur,
+                          }}
+                        />
+                      </div>
+
+                      <small>
+                        {Math.round(
+                          categorie.pourcentage
+                        )}{" "}
+                        % des dépenses
+                      </small>
+                    </div>
+                  );
+                }
+              )}
             </div>
           )}
         </article>
@@ -320,8 +410,10 @@ function Statistiques({ transactions = [] }) {
 
       <footer className="statistiques-footer">
         <span>
-          {donnees.nombreTransactions} transaction(s) sur la période
+          {donnees.nombreTransactions} transaction(s)
+          sur la période
         </span>
+
         <span>
           Données actualisées automatiquement
         </span>

@@ -1,31 +1,15 @@
+
+import { useEffect, useMemo, useState } from "react";
 import "./App.css";
-import Parametres from "./pages/Parametres";
-import Categories from "./pages/Categories";
-import Statistiques from "./pages/Statistiques";
-import Budgets from "./pages/Budgets";
+import "./Accueil.css";
+
 import Transactions from "./pages/Transactions";
+import Budgets from "./pages/Budgets";
+import Statistiques from "./pages/Statistiques";
+import Categories from "./pages/Categories";
+import Parametres from "./pages/Parametres";
 
-import { useState, useEffect } from "react";
-
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  Legend,
-} from "recharts";
-
-// ==========================================
-// TRANSACTIONS DE DÉPART
-// ==========================================
-
-const transactionsData = [
+const transactionsInitiales = [
   {
     id: 1,
     nom: "courses",
@@ -49,300 +33,139 @@ const transactionsData = [
   },
 ];
 
-// ==========================================
-// CATÉGORIES DE DÉPART
-// ==========================================
-
 const categoriesInitiales = [
-  {
-    id: "alimentation",
-    nom: "Alimentation",
-    type: "depense",
-    couleur: "#8ba58e",
-    budget: 400,
-  },
-  {
-    id: "logement",
-    nom: "Logement",
-    type: "depense",
-    couleur: "#a98ad0",
-    budget: 1000,
-  },
-  {
-    id: "transport",
-    nom: "Transport",
-    type: "depense",
-    couleur: "#79b3c6",
-    budget: 200,
-  },
-  {
-    id: "loisirs",
-    nom: "Loisirs",
-    type: "depense",
-    couleur: "#e7bb6a",
-    budget: 150,
-  },
-  {
-    id: "sante",
-    nom: "Santé",
-    type: "depense",
-    couleur: "#dd8b86",
-    budget: 100,
-  },
-  {
-    id: "shopping",
-    nom: "Shopping",
-    type: "depense",
-    couleur: "#c8b8a4",
-    budget: 200,
-  },
-  {
-    id: "abonnements",
-    nom: "Abonnements",
-    type: "depense",
-    couleur: "#739e8c",
-    budget: 100,
-  },
-  {
-    id: "autre-depense",
-    nom: "Autre",
-    type: "depense",
-    couleur: "#9caaa0",
-    budget: 100,
-  },
-  {
-    id: "revenus",
-    nom: "Revenus",
-    type: "revenu",
-    couleur: "#65a777",
-    budget: 0,
-  },
-  {
-    id: "salaire",
-    nom: "Salaire",
-    type: "revenu",
-    couleur: "#65a777",
-    budget: 0,
-  },
-  {
-    id: "prime",
-    nom: "Prime",
-    type: "revenu",
-    couleur: "#81b59a",
-    budget: 0,
-  },
-  {
-    id: "cadeau",
-    nom: "Cadeau",
-    type: "revenu",
-    couleur: "#a98ad0",
-    budget: 0,
-  },
-  {
-    id: "remboursement",
-    nom: "Remboursement",
-    type: "revenu",
-    couleur: "#79b3c6",
-    budget: 0,
-  },
-  {
-    id: "autre-revenu",
-    nom: "Autre",
-    type: "revenu",
-    couleur: "#e7bb6a",
-    budget: 0,
-  },
+  { id: "alimentation", nom: "Alimentation", type: "depense", couleur: "#8ba58e", budget: 400 },
+  { id: "logement", nom: "Logement", type: "depense", couleur: "#a98ad0", budget: 1000 },
+  { id: "transport", nom: "Transport", type: "depense", couleur: "#79b3c6", budget: 200 },
+  { id: "loisirs", nom: "Loisirs", type: "depense", couleur: "#e7bb6a", budget: 150 },
+  { id: "sante", nom: "Santé", type: "depense", couleur: "#dd8b86", budget: 100 },
+  { id: "shopping", nom: "Shopping", type: "depense", couleur: "#c8b8a4", budget: 200 },
+  { id: "abonnements", nom: "Abonnements", type: "depense", couleur: "#739e8c", budget: 100 },
+  { id: "autre-depense", nom: "Autre", type: "depense", couleur: "#9caaa0", budget: 100 },
+  { id: "revenus", nom: "Revenus", type: "revenu", couleur: "#65a777", budget: 0 },
+  { id: "salaire", nom: "Salaire", type: "revenu", couleur: "#65a777", budget: 0 },
+  { id: "prime", nom: "Prime", type: "revenu", couleur: "#81b59a", budget: 0 },
+  { id: "cadeau", nom: "Cadeau", type: "revenu", couleur: "#a98ad0", budget: 0 },
+  { id: "remboursement", nom: "Remboursement", type: "revenu", couleur: "#79b3c6", budget: 0 },
+  { id: "autre-revenu", nom: "Autre", type: "revenu", couleur: "#e7bb6a", budget: 0 },
 ];
 
-const COLORS = [
-  "#455d50",
-  "#8ba58e",
-  "#c8b8a4",
-  "#e8ede4",
+const navigation = [
+  { id: "accueil", nom: "Accueil", icone: "⌂" },
+  { id: "transactions", nom: "Transactions", icone: "⇄" },
+  { id: "budgets", nom: "Budgets", icone: "◴" },
+  { id: "objectifs", nom: "Objectifs", icone: "◎" },
+  { id: "statistiques", nom: "Statistiques", icone: "▥" },
+  { id: "categories", nom: "Catégories", icone: "◇" },
+  { id: "parametres", nom: "Paramètres", icone: "⚙" },
 ];
 
-// ==========================================
-// CHARGEMENT DES CATÉGORIES
-// ==========================================
-
-function chargerCategories() {
+function lireStockage(cle, valeurInitiale) {
   try {
-    const sauvegarde = localStorage.getItem(
-      "moneyflow-categories"
-    );
+    const valeur = localStorage.getItem(cle);
 
-    if (sauvegarde !== null) {
-      const donnees = JSON.parse(sauvegarde);
-
-      if (Array.isArray(donnees)) {
-        if (
-          localStorage.getItem(
-            "moneyflow-categories-v2"
-          ) !== "true"
-        ) {
-          const categoriesCompletes = [
-            ...donnees,
-            ...categoriesInitiales.filter(
-              (initiale) =>
-                !donnees.some(
-                  (existante) =>
-                    existante.id === initiale.id ||
-                    (
-                      existante.nom.toLowerCase() ===
-                        initiale.nom.toLowerCase() &&
-                      existante.type === initiale.type
-                    )
-                )
-            ),
-          ];
-
-          localStorage.setItem(
-            "moneyflow-categories-v2",
-            "true"
-          );
-
-          return categoriesCompletes;
-        }
-
-        return donnees;
-      }
+    if (valeur === null) {
+      return valeurInitiale;
     }
-  } catch (erreur) {
-    console.error(
-      "Erreur de chargement des catégories :",
-      erreur
-    );
+
+    const resultat = JSON.parse(valeur);
+
+    return Array.isArray(resultat)
+      ? resultat
+      : valeurInitiale;
+  } catch {
+    return valeurInitiale;
   }
-
-  localStorage.setItem(
-    "moneyflow-categories-v2",
-    "true"
-  );
-
-  return categoriesInitiales;
 }
 
-// ==========================================
-// APPLICATION
-// ==========================================
-
-function App() {
-  // ========================================
-  // TRANSACTIONS
-  // ========================================
-
-  const [transactions, setTransactions] = useState(() => {
-    try {
-      const sauvegarde = localStorage.getItem(
-        "transactions"
-      );
-
-      if (sauvegarde !== null) {
-        const donnees = JSON.parse(sauvegarde);
-
-        if (Array.isArray(donnees)) {
-          return donnees;
-        }
-      }
-    } catch (erreur) {
-      console.error(
-        "Erreur de chargement des transactions :",
-        erreur
-      );
-    }
-
-    return transactionsData;
-  });
-
-  const [nom, setNom] = useState("");
-  const [categorie, setCategorie] = useState("");
-  const [montant, setMontant] = useState("");
-
-  const [typeTransaction, setTypeTransaction] =
-    useState("depense");
-
-  // ========================================
-  // NAVIGATION
-  // ========================================
-
-  const [menuOuvert, setMenuOuvert] = useState(false);
-  const [pageActive, setPageActive] = useState("accueil");
-
-  const [prenomUtilisateur, setPrenomUtilisateur] =
-    useState(
-      () =>
-        localStorage.getItem("moneyflow-nom") || ""
-    );
-
-  // ========================================
-  // CATÉGORIES
-  // ========================================
-
-  const [categories, setCategories] = useState(
-    chargerCategories
+function chargerCategories() {
+  const categories = lireStockage(
+    "moneyflow-categories",
+    categoriesInitiales
   );
 
-  const categoriesDepenses = categories
-    .filter((cat) => cat.type === "depense")
-    .map((cat) => cat.nom);
+  // On respecte les catégories déjà enregistrées,
+  // y compris celles que l'utilisateur a supprimées.
+  if (
+    localStorage.getItem("moneyflow-categories-v2") === "true"
+  ) {
+    return categories;
+  }
 
-  const categoriesRevenus = categories
-    .filter((cat) => cat.type === "revenu")
-    .map((cat) => cat.nom);
+  const categoriesCompletes = [
+    ...categories,
+    ...categoriesInitiales.filter(
+      (initiale) =>
+        !categories.some(
+          (existante) =>
+            existante.id === initiale.id ||
+            (
+              existante.nom.toLowerCase() ===
+                initiale.nom.toLowerCase() &&
+              existante.type === initiale.type
+            )
+        )
+    ),
+  ];
 
-  // ========================================
-  // BUDGET GLOBAL SYNCHRONISÉ
-  // ========================================
+  localStorage.setItem("moneyflow-categories-v2", "true");
 
-  // Le budget total correspond maintenant
-  // à la somme des budgets des catégories
-  // de dépenses.
+  return categoriesCompletes;
+}
 
-  const budget = categories
-    .filter((cat) => cat.type === "depense")
-    .reduce(
-      (total, cat) =>
-        total + (Number(cat.budget) || 0),
-      0
-    );
+function euros(valeur) {
+  return new Intl.NumberFormat("fr-FR", {
+    style: "currency",
+    currency: "EUR",
+  }).format(valeur);
+}
 
-  // ========================================
-  // MODIFICATION DES TRANSACTIONS
-  // ========================================
+function formaterDate(date) {
+  if (!date) return "";
 
-  const [
-    transactionEnModification,
-    setTransactionEnModification,
-  ] = useState(null);
+  const [annee, mois, jour] = date.split("-");
 
-  const [nomModifie, setNomModifie] = useState("");
-  const [montantModifie, setMontantModifie] =
-    useState("");
+  return `${jour}/${mois}/${annee}`;
+}
 
-  const [categorieModifiee, setCategorieModifiee] =
-    useState("");
+function identifiantUnique() {
+  return typeof crypto !== "undefined" && crypto.randomUUID
+    ? crypto.randomUUID()
+    : `${Date.now()}-${Math.random()}`;
+}
 
-  const [typeModifie, setTypeModifie] =
-    useState("depense");
+function App() {
+  const [transactions, setTransactions] = useState(() =>
+    lireStockage("transactions", transactionsInitiales)
+  );
 
-  const [
-    erreurModification,
-    setErreurModification,
-  ] = useState("");
+  const [categories, setCategories] = useState(chargerCategories);
 
-  // ========================================
-  // RECHERCHE ET FILTRES
-  // ========================================
+  const [objectifs, setObjectifs] = useState(() =>
+    lireStockage("moneyflow-objectifs", [])
+  );
 
-  const [recherche, setRecherche] = useState("");
-  const [filtreType, setFiltreType] =
-    useState("tous");
+  const [prenomUtilisateur, setPrenomUtilisateur] = useState(
+    () => localStorage.getItem("moneyflow-nom") || ""
+  );
 
-  const [erreur, setErreur] = useState("");
+  const [pageActive, setPageActive] = useState(() => {
+    const page = window.location.hash.replace("#", "");
 
-  // ========================================
-  // SAUVEGARDE AUTOMATIQUE
-  // ========================================
+    return navigation.some((element) => element.id === page)
+      ? page
+      : "accueil";
+  });
+
+  const [menuOuvert, setMenuOuvert] = useState(false);
+  const [modalObjectif, setModalObjectif] = useState(false);
+
+  const [nomObjectif, setNomObjectif] = useState("");
+  const [montantObjectif, setMontantObjectif] = useState("");
+  const [montantEconomise, setMontantEconomise] = useState("");
+  const [erreurObjectif, setErreurObjectif] = useState("");
+
+  // SAUVEGARDE
 
   useEffect(() => {
     localStorage.setItem(
@@ -358,337 +181,720 @@ function App() {
     );
   }, [categories]);
 
-  // ========================================
-  // AJOUTER UNE TRANSACTION
-  // ========================================
+  useEffect(() => {
+    localStorage.setItem(
+      "moneyflow-objectifs",
+      JSON.stringify(objectifs)
+    );
+  }, [objectifs]);
 
-  function ajouterTransaction() {
-    if (!nom.trim()) {
-      setErreur(
-        "Veuillez saisir un nom de transaction."
+  // NAVIGATION
+
+  useEffect(() => {
+    function synchroniserNavigation() {
+      const page = window.location.hash.replace("#", "");
+
+      if (navigation.some((element) => element.id === page)) {
+        setPageActive(page);
+      } else {
+        setPageActive("accueil");
+      }
+    }
+
+    window.addEventListener(
+      "hashchange",
+      synchroniserNavigation
+    );
+
+    return () =>
+      window.removeEventListener(
+        "hashchange",
+        synchroniserNavigation
       );
+  }, []);
+
+  function naviguer(page) {
+    setPageActive(page);
+    setMenuOuvert(false);
+    window.location.hash = page;
+  }
+
+  // CALCULS FINANCIERS
+
+  const aujourdHui = new Date();
+
+  const moisCourant = [
+    aujourdHui.getFullYear(),
+    String(aujourdHui.getMonth() + 1).padStart(2, "0"),
+  ].join("-");
+
+  const dateMoisPrecedent = new Date(
+    aujourdHui.getFullYear(),
+    aujourdHui.getMonth() - 1,
+    1
+  );
+
+  const moisPrecedent = [
+    dateMoisPrecedent.getFullYear(),
+    String(dateMoisPrecedent.getMonth() + 1).padStart(2, "0"),
+  ].join("-");
+
+  const transactionsMois = useMemo(
+    () =>
+      transactions.filter((transaction) =>
+        transaction.date?.startsWith(moisCourant)
+      ),
+    [transactions, moisCourant]
+  );
+
+  const transactionsMoisPrecedent = useMemo(
+    () =>
+      transactions.filter((transaction) =>
+        transaction.date?.startsWith(moisPrecedent)
+      ),
+    [transactions, moisPrecedent]
+  );
+
+  function calculerTotaux(liste) {
+    return liste.reduce(
+      (resultat, transaction) => {
+        const montant = Number(transaction.montant);
+
+        if (!Number.isFinite(montant)) {
+          return resultat;
+        }
+
+        if (montant > 0) {
+          resultat.revenus += montant;
+        } else if (montant < 0) {
+          resultat.depenses += Math.abs(montant);
+        }
+
+        return resultat;
+      },
+      { revenus: 0, depenses: 0 }
+    );
+  }
+
+  const totaux = calculerTotaux(transactions);
+  const totauxMois = calculerTotaux(transactionsMois);
+  const totauxPrecedents = calculerTotaux(
+    transactionsMoisPrecedent
+  );
+
+  const soldeActuel = totaux.revenus - totaux.depenses;
+
+  const budgetTotal = categories
+    .filter((categorie) => categorie.type === "depense")
+    .reduce(
+      (total, categorie) =>
+        total + (Number(categorie.budget) || 0),
+      0
+    );
+
+  const budgetRestant =
+    budgetTotal - totauxMois.depenses;
+
+  function calculerVariation(actuel, precedent) {
+    if (precedent === 0) return null;
+
+    return ((actuel - precedent) / precedent) * 100;
+  }
+
+  const variationDepenses = calculerVariation(
+    totauxMois.depenses,
+    totauxPrecedents.depenses
+  );
+
+  const variationRevenus = calculerVariation(
+    totauxMois.revenus,
+    totauxPrecedents.revenus
+  );
+
+  const soldeMois =
+    totauxMois.revenus - totauxMois.depenses;
+
+  const soldePrecedent =
+    totauxPrecedents.revenus - totauxPrecedents.depenses;
+
+  const variationSolde = calculerVariation(
+    soldeMois,
+    soldePrecedent
+  );
+
+  // BUDGETS RESPECTÉS
+
+  const categoriesAvecBudget = categories.filter(
+    (categorie) =>
+      categorie.type === "depense" &&
+      Number(categorie.budget) > 0
+  );
+
+  const budgetsRespectes = categoriesAvecBudget.filter(
+    (categorie) => {
+      const depenseCategorie = transactionsMois
+        .filter(
+          (transaction) =>
+            Number(transaction.montant) < 0 &&
+            transaction.categorie?.toLowerCase() ===
+              categorie.nom.toLowerCase()
+        )
+        .reduce(
+          (total, transaction) =>
+            total + Math.abs(Number(transaction.montant)),
+          0
+        );
+
+      return depenseCategorie <= Number(categorie.budget);
+    }
+  ).length;
+
+  // TRANSACTIONS RÉCENTES
+
+  const transactionsRecentes = useMemo(
+    () =>
+      [...transactions]
+        .sort((a, b) =>
+          String(b.date).localeCompare(String(a.date))
+        )
+        .slice(0, 4),
+    [transactions]
+  );
+
+  // OBJECTIFS
+
+  function ajouterObjectif(event) {
+    event.preventDefault();
+
+    const nom = nomObjectif.trim();
+    const cible = Number(montantObjectif);
+    const economise = Number(montantEconomise || 0);
+
+    if (!nom) {
+      setErreurObjectif("Saisis un nom pour ton objectif.");
       return;
     }
 
-    if (!categorie.trim()) {
-      setErreur(
-        "Veuillez sélectionner une catégorie."
+    if (!Number.isFinite(cible) || cible <= 0) {
+      setErreurObjectif(
+        "Le montant à atteindre doit être supérieur à 0."
       );
       return;
     }
 
     if (
-      montant.trim() === "" ||
-      !Number.isFinite(Number(montant)) ||
-      Number(montant) <= 0
+      !Number.isFinite(economise) ||
+      economise < 0 ||
+      economise > cible
     ) {
-      setErreur(
-        "Veuillez saisir un montant supérieur à 0."
+      setErreurObjectif(
+        "Le montant économisé doit être compris entre 0 et le montant cible."
       );
       return;
     }
 
-    const aujourdhui = new Date();
-
-    const annee = aujourdhui.getFullYear();
-
-    const mois = String(
-      aujourdhui.getMonth() + 1
-    ).padStart(2, "0");
-
-    const jour = String(
-      aujourdhui.getDate()
-    ).padStart(2, "0");
-
-    const dateComplete = `${annee}-${mois}-${jour}`;
-
-    const nouvelleTransaction = {
-      id: crypto.randomUUID(),
-      nom: nom.trim(),
-      categorie: categorie.trim(),
-
-      montant:
-        typeTransaction === "depense"
-          ? -Math.abs(Number(montant))
-          : Math.abs(Number(montant)),
-
-      date: dateComplete,
+    const nouvelObjectif = {
+      id: identifiantUnique(),
+      nom,
+      cible,
+      economise,
     };
 
-    setTransactions((anciennes) => [
-      ...anciennes,
-      nouvelleTransaction,
+    setObjectifs((anciens) => [
+      ...anciens,
+      nouvelObjectif,
     ]);
 
-    setNom("");
-    setMontant("");
-    setCategorie("");
-    setErreur("");
+    setNomObjectif("");
+    setMontantObjectif("");
+    setMontantEconomise("");
+    setErreurObjectif("");
+    setModalObjectif(false);
   }
 
-  // ========================================
-  // SUPPRIMER UNE TRANSACTION
-  // ========================================
-
-  function supprimerTransaction(id) {
-    const confirmation = window.confirm(
-      "Voulez-vous vraiment supprimer cette transaction ?"
+  function ajouterEpargne(objectif) {
+    const saisie = window.prompt(
+      `Combien souhaites-tu ajouter à « ${objectif.nom} » ?`
     );
 
-    if (!confirmation) return;
+    if (saisie === null) return;
 
-    setTransactions((anciennes) =>
-      anciennes.filter(
-        (transaction) => transaction.id !== id
+    const montant = Number(saisie.replace(",", "."));
+
+    if (!Number.isFinite(montant) || montant <= 0) {
+      window.alert("Saisis un montant positif.");
+      return;
+    }
+
+    if (objectif.economise + montant > objectif.cible) {
+      window.alert(
+        "Le montant dépasse la somme restante pour cet objectif."
+      );
+      return;
+    }
+
+    setObjectifs((anciens) =>
+      anciens.map((element) =>
+        element.id === objectif.id
+          ? {
+              ...element,
+              economise: element.economise + montant,
+            }
+          : element
       )
     );
   }
 
-  // ========================================
-  // MODIFIER UNE TRANSACTION
-  // ========================================
-
-  function commencerModification(transaction) {
-    setTransactionEnModification(transaction.id);
-
-    setNomModifie(transaction.nom);
-
-    setMontantModifie(
-      String(Math.abs(transaction.montant))
+  function supprimerObjectif(id) {
+    const confirmation = window.confirm(
+      "Supprimer cet objectif d'épargne ?"
     );
 
-    setCategorieModifiee(transaction.categorie);
+    if (!confirmation) return;
 
-    setTypeModifie(
-      transaction.montant < 0
-        ? "depense"
-        : "revenu"
+    setObjectifs((anciens) =>
+      anciens.filter((objectif) => objectif.id !== id)
     );
-
-    setErreurModification("");
   }
 
-  function annulerModification() {
-    setTransactionEnModification(null);
-    setErreurModification("");
-  }
+  // COMPOSANTS VISUELS
 
-  function enregistrerModification(id) {
-    if (!nomModifie.trim()) {
-      setErreurModification(
-        "Veuillez saisir un nom."
-      );
-      return;
-    }
-
-    if (!categorieModifiee.trim()) {
-      setErreurModification(
-        "Veuillez choisir une catégorie."
-      );
-      return;
-    }
-
-    if (
-      montantModifie.trim() === "" ||
-      !Number.isFinite(Number(montantModifie)) ||
-      Number(montantModifie) <= 0
-    ) {
-      setErreurModification(
-        "Veuillez saisir un montant supérieur à 0."
-      );
-      return;
-    }
-
-    setTransactions((anciennes) =>
-      anciennes.map((transaction) => {
-        if (transaction.id !== id) {
-          return transaction;
-        }
-
-        return {
-          ...transaction,
-
-          nom: nomModifie.trim(),
-
-          categorie: categorieModifiee,
-
-          montant:
-            typeModifie === "depense"
-              ? -Math.abs(Number(montantModifie))
-              : Math.abs(Number(montantModifie)),
-        };
-      })
-    );
-
-    setTransactionEnModification(null);
-    setErreurModification("");
-  }
-
-  // ========================================
-  // CALCUL DES DÉPENSES
-  // ========================================
-
-  const transactionDepenses = transactions.filter(
-    (transaction) =>
-      Number(transaction.montant) < 0
-  );
-
-  const depensesParCategorie =
-    transactionDepenses.reduce(
-      (accumulateur, transaction) => {
-        const nomCategorie = transaction.categorie;
-
-        if (!accumulateur[nomCategorie]) {
-          accumulateur[nomCategorie] = 0;
-        }
-
-        accumulateur[nomCategorie] += Math.abs(
-          Number(transaction.montant)
-        );
-
-        return accumulateur;
-      },
-      {}
-    );
-
-  const depensesRegroupees = Object.entries(
-    depensesParCategorie
-  ).map(([nomCategorie, montantCategorie]) => ({
-    categorie: nomCategorie,
-    montant: montantCategorie,
-  }));
-
-  const depenses = transactionDepenses.reduce(
-    (total, transaction) =>
-      total + Math.abs(Number(transaction.montant)),
-    0
-  );
-
-  // ========================================
-  // CALCUL DES REVENUS
-  // ========================================
-
-  const transactionRevenus = transactions.filter(
-    (transaction) =>
-      Number(transaction.montant) > 0
-  );
-
-  const revenus = transactionRevenus.reduce(
-    (total, transaction) =>
-      total + Number(transaction.montant),
-    0
-  );
-
-  const soldeActuel = revenus - depenses;
-
-  // ========================================
-  // DÉPENSES DU MOIS EN COURS
-  // ========================================
-
-  const maintenant = new Date();
-
-  const moisActuel = maintenant.getMonth();
-  const anneeActuelle = maintenant.getFullYear();
-
-  const depensesDuMois = transactions
-    .filter((transaction) => {
-      const date = new Date(
-        `${transaction.date}T12:00:00`
-      );
-
+  function afficherVariation(variation, inverse = false) {
+    if (variation === null) {
       return (
-        !Number.isNaN(date.getTime()) &&
-        date.getMonth() === moisActuel &&
-        date.getFullYear() === anneeActuelle &&
-        Number(transaction.montant) < 0
+        <span className="mf-variation neutre">
+          Pas de comparaison disponible
+        </span>
       );
-    })
-    .reduce(
-      (total, transaction) =>
-        total + Math.abs(Number(transaction.montant)),
-      0
+    }
+
+    const positif = variation >= 0;
+    const favorable = inverse ? !positif : positif;
+
+    return (
+      <span
+        className={`mf-variation ${
+          favorable ? "positive" : "negative"
+        }`}
+      >
+        {positif ? "↑" : "↓"}{" "}
+        {Math.abs(variation).toFixed(1).replace(".", ",")} %
+        <small> vs mois dernier</small>
+      </span>
+    );
+  }
+
+  function carteObjectif(objectif) {
+    const progression = Math.min(
+      (objectif.economise / objectif.cible) * 100,
+      100
     );
 
-  const budgetRestant = budget - depensesDuMois;
+    return (
+      <article className="mf-objectif" key={objectif.id}>
+        <div className="mf-objectif-icone">◎</div>
 
-  // ========================================
-  // TRI ET RECHERCHE
-  // ========================================
+        <div className="mf-objectif-contenu">
+          <div className="mf-objectif-haut">
+            <strong>{objectif.nom}</strong>
 
-  const transactionsTriees = [
-    ...transactions,
-  ].sort((a, b) =>
-    a.date.localeCompare(b.date)
-  );
+            <button
+              type="button"
+              className="mf-icon-button"
+              title="Supprimer l'objectif"
+              onClick={() => supprimerObjectif(objectif.id)}
+            >
+              ×
+            </button>
+          </div>
 
-  const transactionsFiltrees =
-    transactionsTriees.filter((transaction) => {
-      const rechercheNettoyee =
-        recherche.toLowerCase();
+          <p>
+            {euros(objectif.economise)} /{" "}
+            {euros(objectif.cible)}
+          </p>
 
-      const correspondRecherche =
-        transaction.nom
-          .toLowerCase()
-          .includes(rechercheNettoyee) ||
-        transaction.categorie
-          .toLowerCase()
-          .includes(rechercheNettoyee);
+          <div className="mf-progression-ligne">
+            <div className="mf-barre">
+              <div
+                style={{
+                  width: `${progression}%`,
+                }}
+              />
+            </div>
 
-      const correspondType =
-        filtreType === "tous" ||
-        (
-          filtreType === "depense" &&
-          Number(transaction.montant) < 0
-        ) ||
-        (
-          filtreType === "revenu" &&
-          Number(transaction.montant) > 0
-        );
+            <span>{Math.round(progression)} %</span>
+          </div>
 
-      return correspondRecherche && correspondType;
-    });
-
-  const transactionsRecentes = [
-    ...transactionsFiltrees,
-  ]
-    .reverse()
-    .slice(0, 5);
-
-  // ========================================
-  // ÉVOLUTION DU SOLDE
-  // ========================================
-
-  const transactionsParJour =
-    transactionsTriees.reduce(
-      (accumulateur, transaction) => {
-        if (!accumulateur[transaction.date]) {
-          accumulateur[transaction.date] = 0;
-        }
-
-        accumulateur[transaction.date] +=
-          Number(transaction.montant);
-
-        return accumulateur;
-      },
-      {}
+          <button
+            type="button"
+            className="mf-ajouter-epargne"
+            onClick={() => ajouterEpargne(objectif)}
+          >
+            + Ajouter de l'épargne
+          </button>
+        </div>
+      </article>
     );
+  }
 
-  let soldeCumule = 0;
+  // PAGE ACCUEIL
 
-  const evolutionSolde = Object.entries(
-    transactionsParJour
-  ).map(([date, montantJour]) => {
-    soldeCumule += montantJour;
+  function afficherAccueil() {
+    return (
+      <div className="mf-accueil">
+        <header className="mf-entete">
+          <div>
+            <span className="mf-sur-titre">
+              MON TABLEAU DE BORD
+            </span>
 
-    return {
-      date,
-      solde: soldeCumule,
-    };
-  });
+            <h1>
+              Bonjour
+              {prenomUtilisateur
+                ? ` ${prenomUtilisateur}`
+                : ""}
+              ! <span>✳</span>
+            </h1>
 
-  // ========================================
-  // AFFICHAGE
-  // ========================================
+            <p>
+              Voici un aperçu de tes finances ce mois-ci.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            className="mf-bouton-principal"
+            onClick={() => naviguer("transactions")}
+          >
+            + Nouvelle transaction
+          </button>
+        </header>
+
+        {/* CARTES FINANCIÈRES */}
+
+        <section className="mf-cartes-finances">
+          <article className="mf-carte-finance">
+            <div className="mf-carte-haut">
+              <span className="mf-carte-icone solde">
+                ◇
+              </span>
+              <span>Solde actuel</span>
+            </div>
+
+            <strong>{euros(soldeActuel)}</strong>
+
+            {afficherVariation(variationSolde)}
+          </article>
+
+          <article className="mf-carte-finance">
+            <div className="mf-carte-haut">
+              <span className="mf-carte-icone revenus">
+                ↗
+              </span>
+              <span>Revenus du mois</span>
+            </div>
+
+            <strong>{euros(totauxMois.revenus)}</strong>
+
+            {afficherVariation(variationRevenus)}
+          </article>
+
+          <article className="mf-carte-finance">
+            <div className="mf-carte-haut">
+              <span className="mf-carte-icone depenses">
+                ↘
+              </span>
+              <span>Dépenses du mois</span>
+            </div>
+
+            <strong>{euros(totauxMois.depenses)}</strong>
+
+            {afficherVariation(variationDepenses, true)}
+          </article>
+
+          <article className="mf-carte-finance budget">
+            <div className="mf-carte-haut">
+              <span className="mf-carte-icone budget">
+                ◎
+              </span>
+              <span>Budget restant</span>
+            </div>
+
+            <strong
+              className={
+                budgetRestant < 0 ? "mf-negatif" : ""
+              }
+            >
+              {euros(budgetRestant)}
+            </strong>
+
+            <span className="mf-carte-detail">
+              Sur un budget de {euros(budgetTotal)}
+            </span>
+          </article>
+        </section>
+
+        {/* EN UN COUP D'ŒIL */}
+
+        <section className="mf-section mf-apercu">
+          <div className="mf-section-entete">
+            <div>
+              <h2>✧ En un coup d'œil</h2>
+              <p>
+                Les informations importantes de ton mois.
+              </p>
+            </div>
+
+            <button
+              className="mf-lien"
+              onClick={() => naviguer("statistiques")}
+            >
+              Voir les statistiques →
+            </button>
+          </div>
+
+          <div className="mf-analyses">
+            <article className="mf-analyse alerte">
+              <span className="mf-analyse-icone">
+                ↗
+              </span>
+
+              <div>
+                <h3>
+                  {variationDepenses === null
+                    ? "Suivi des dépenses"
+                    : variationDepenses > 0
+                      ? "Dépenses en hausse"
+                      : "Dépenses maîtrisées"}
+                </h3>
+
+                <p>
+                  {variationDepenses === null
+                    ? "Ajoute des transactions sur deux mois pour comparer tes dépenses."
+                    : variationDepenses > 0
+                      ? `Tes dépenses ont augmenté de ${Math.abs(
+                          variationDepenses
+                        ).toFixed(1)} % par rapport au mois dernier.`
+                      : variationDepenses < 0
+                        ? `Tes dépenses ont diminué de ${Math.abs(
+                            variationDepenses
+                          ).toFixed(1)} % par rapport au mois dernier.`
+                        : "Tes dépenses sont identiques à celles du mois dernier."}
+                </p>
+              </div>
+            </article>
+
+            <article className="mf-analyse reussite">
+              <span className="mf-analyse-icone">
+                ✓
+              </span>
+
+              <div>
+                <h3>Mes budgets</h3>
+
+                <p>
+                  {categoriesAvecBudget.length === 0
+                    ? "Crée des budgets pour suivre tes dépenses."
+                    : `${budgetsRespectes} budget(s) respecté(s) sur ${categoriesAvecBudget.length} ce mois-ci.`}
+                </p>
+              </div>
+            </article>
+
+            <article className="mf-analyse conseil">
+              <span className="mf-analyse-icone">
+                ✦
+              </span>
+
+              <div>
+                <h3>Le conseil du mois</h3>
+
+                <p>
+                  {budgetRestant < 0
+                    ? `Tu as dépassé ton budget mensuel de ${euros(
+                        Math.abs(budgetRestant)
+                      )}. Consulte tes budgets pour identifier les catégories concernées.`
+                    : objectifs.length > 0
+                      ? "Tu peux suivre tes projets d'épargne dans la rubrique Objectifs."
+                      : "Crée ton premier objectif d'épargne pour préparer un projet qui te tient à cœur."}
+                </p>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        {/* OBJECTIFS ET TRANSACTIONS */}
+
+        <div className="mf-bas-accueil">
+          <section className="mf-section mf-objectifs-section">
+            <div className="mf-section-entete">
+              <div>
+                <h2>◎ Mes objectifs</h2>
+                <p>
+                  Économise pour tes projets.
+                </p>
+              </div>
+
+              <button
+                className="mf-lien"
+                onClick={() => naviguer("objectifs")}
+              >
+                Voir tout →
+              </button>
+            </div>
+
+            {objectifs.length === 0 ? (
+              <div className="mf-vide">
+                <span>✧</span>
+                <h3>Ton prochain projet commence ici</h3>
+                <p>
+                  Vacances, ordinateur, permis...
+                  Fixe-toi un objectif et suis ton épargne.
+                </p>
+              </div>
+            ) : (
+              <div className="mf-liste-objectifs">
+                {objectifs.slice(0, 2).map(carteObjectif)}
+              </div>
+            )}
+
+            <button
+              className="mf-bouton-ajout"
+              onClick={() => setModalObjectif(true)}
+            >
+              + Ajouter un objectif
+            </button>
+          </section>
+
+          <section className="mf-section mf-transactions-section">
+            <div className="mf-section-entete">
+              <div>
+                <h2>⇄ Dernières transactions</h2>
+                <p>
+                  Tes opérations les plus récentes.
+                </p>
+              </div>
+
+              <button
+                className="mf-lien"
+                onClick={() => naviguer("transactions")}
+              >
+                Voir tout →
+              </button>
+            </div>
+
+            {transactionsRecentes.length === 0 ? (
+              <div className="mf-vide">
+                <p>Aucune transaction pour le moment.</p>
+              </div>
+            ) : (
+              <div className="mf-liste-transactions">
+                {transactionsRecentes.map((transaction) => {
+                  const estDepense =
+                    Number(transaction.montant) < 0;
+
+                  return (
+                    <article
+                      className="mf-transaction"
+                      key={transaction.id}
+                    >
+                      <span
+                        className={`mf-transaction-icone ${
+                          estDepense ? "sortie" : "entree"
+                        }`}
+                      >
+                        {estDepense ? "↗" : "↙"}
+                      </span>
+
+                      <div className="mf-transaction-infos">
+                        <strong>{transaction.nom}</strong>
+                        <small>
+                          {transaction.categorie}
+                        </small>
+                      </div>
+
+                      <div className="mf-transaction-montant">
+                        <strong
+                          className={
+                            estDepense
+                              ? "mf-montant-negatif"
+                              : "mf-montant-positif"
+                          }
+                        >
+                          {!estDepense ? "+" : ""}
+                          {euros(Number(transaction.montant))}
+                        </strong>
+
+                        <small>
+                          {formaterDate(transaction.date)}
+                        </small>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+        </div>
+      </div>
+    );
+  }
+
+  // PAGE OBJECTIFS
+
+  function afficherObjectifs() {
+    return (
+      <div className="mf-accueil mf-page-objectifs">
+        <header className="mf-entete">
+          <div>
+            <span className="mf-sur-titre">
+              MES PROJETS
+            </span>
+
+            <h1>Mes objectifs d'épargne</h1>
+
+            <p>
+              Organise tes projets et suis leur progression.
+            </p>
+          </div>
+
+          <button
+            className="mf-bouton-principal"
+            onClick={() => setModalObjectif(true)}
+          >
+            + Nouvel objectif
+          </button>
+        </header>
+
+        {objectifs.length === 0 ? (
+          <section className="mf-section mf-vide">
+            <span>◎</span>
+            <h2>Aucun objectif pour le moment</h2>
+            <p>
+              Ajoute ton premier projet pour commencer à
+              suivre ton épargne.
+            </p>
+
+            <button
+              className="mf-bouton-principal"
+              onClick={() => setModalObjectif(true)}
+            >
+              Créer un objectif
+            </button>
+          </section>
+        ) : (
+          <div className="mf-grille-objectifs">
+            {objectifs.map(carteObjectif)}
+          </div>
+        )}
+
+        <p className="mf-note-epargne">
+          Les montants économisés sont suivis séparément
+          de tes transactions : ils ne sont pas déduits
+          automatiquement de ton solde bancaire.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -696,20 +902,22 @@ function App() {
         pageActive === "budgets"
           ? "app-budgets"
           : pageActive === "transactions"
-          ? "app-transactions"
-          : ""
+            ? "app-transactions"
+            : ""
       }`}
     >
       {/* SIDEBAR */}
 
-      <aside className="sidebar">
-        <h2>MoneyFlow</h2>
+      <aside className="sidebar mf-sidebar">
+        <div className="mf-logo">
+          <span className="mf-logo-symbole">◈</span>
+          <h2>MoneyFlow</h2>
+        </div>
 
         <button
           className="menu-toggle"
-          onClick={() =>
-            setMenuOuvert(!menuOuvert)
-          }
+          onClick={() => setMenuOuvert(!menuOuvert)}
+          aria-label="Ouvrir le menu"
         >
           ☰
         </button>
@@ -721,43 +929,57 @@ function App() {
               : "nav-links"
           }
         >
-          {[
-            ["accueil", "Accueil"],
-            ["transactions", "Transactions"],
-            ["budgets", "Budgets"],
-            ["statistiques", "Statistiques"],
-            ["categories", "Catégories"],
-            ["parametres", "Paramètres"],
-          ].map(([page, titre]) => (
+          {navigation.map((element) => (
             <a
-              key={page}
-              href={`#${page}`}
-              onClick={() => {
-                setPageActive(page);
-                setMenuOuvert(false);
-              }}
+              key={element.id}
+              href={`#${element.id}`}
               className={
-                pageActive === page
+                pageActive === element.id
                   ? "lien-actif"
                   : ""
               }
+              onClick={(event) => {
+                event.preventDefault();
+                naviguer(element.id);
+              }}
             >
-              {titre}
+              <span className="mf-nav-icone">
+                {element.icone}
+              </span>
+
+              {element.nom}
             </a>
           ))}
         </nav>
+
+        <div className="mf-sidebar-decoration">
+          ✧
+        </div>
       </aside>
 
-      {/* CONTENU PRINCIPAL */}
+      {/* PAGES */}
 
       <main className="main-content">
-        {pageActive === "parametres" ? (
-          <Parametres
+        {pageActive === "accueil" ? (
+          afficherAccueil()
+        ) : pageActive === "transactions" ? (
+          <Transactions
             transactions={transactions}
             setTransactions={setTransactions}
-            setPrenomUtilisateur={
-              setPrenomUtilisateur
-            }
+            categories={categories}
+          />
+        ) : pageActive === "budgets" ? (
+          <Budgets
+            transactions={transactions}
+            categories={categories}
+            setCategories={setCategories}
+          />
+        ) : pageActive === "objectifs" ? (
+          afficherObjectifs()
+        ) : pageActive === "statistiques" ? (
+          <Statistiques
+            transactions={transactions}
+            categories={categories}
           />
         ) : pageActive === "categories" ? (
           <Categories
@@ -766,576 +988,128 @@ function App() {
             categories={categories}
             setCategories={setCategories}
           />
-        ) : pageActive === "statistiques" ? (
-          <Statistiques
-            transactions={transactions}
-          />
-        ) : pageActive === "budgets" ? (
-          <Budgets
-            transactions={transactions}
-            categories={categories}
-            setCategories={setCategories}
-          />
-        ) : pageActive === "transactions" ? (
-          <Transactions
+        ) : pageActive === "parametres" ? (
+          <Parametres
             transactions={transactions}
             setTransactions={setTransactions}
-            categories={categories}
+            setPrenomUtilisateur={setPrenomUtilisateur}
           />
-        ) : (
-          <>
-            {/* ACCUEIL */}
+        ) : null}
+      </main>
 
-            <h1>
-              Bonjour
-              {prenomUtilisateur
-                ? `, ${prenomUtilisateur}`
-                : ""}{" "}
-              !
-            </h1>
+      {/* MODALE NOUVEL OBJECTIF */}
 
-            <p>
-              Voici un aperçu de tes finances
-            </p>
-
-            {/* CARTES */}
-
-            <div className="stats-grid">
-              <div className="stat-card">
-                <h3>Solde actuel</h3>
-
-                <p>
-                  {soldeActuel.toLocaleString(
-                    "fr-FR"
-                  )}{" "}
-                  €
-                </p>
-              </div>
-
-              <div className="stat-card">
-                <h3>Dépenses</h3>
-
-                <p>
-                  {depenses.toLocaleString(
-                    "fr-FR"
-                  )}{" "}
-                  €
-                </p>
-              </div>
-
-              <div className="stat-card">
-                <h3>Revenus</h3>
-
-                <p>
-                  {revenus.toLocaleString(
-                    "fr-FR"
-                  )}{" "}
-                  €
-                </p>
-              </div>
-
-              <div className="stat-card">
-                <h3>Budget restant</h3>
-
-                <p
-                  className={
-                    budgetRestant < 0
-                      ? "budget-danger"
-                      : "budget-success"
-                  }
-                >
-                  {budgetRestant.toLocaleString(
-                    "fr-FR"
-                  )}{" "}
-                  €
-                </p>
-
-                <p
-                  className={
-                    budgetRestant < 0
-                      ? "budget-danger"
-                      : "budget-success"
-                  }
-                >
-                  {budgetRestant < 0
-                    ? "Budget dépassé"
-                    : "Budget respecté"}
-                </p>
-
-                <small>
-                  Budget mensuel :{" "}
-                  {budget.toLocaleString(
-                    "fr-FR"
-                  )}{" "}
-                  €
-                </small>
-              </div>
-            </div>
-
-            {/* GRAPHIQUES */}
-
-            <div className="charts-grid">
-              <div className="chart-card">
-                <h2>
-                  Évolution de ton solde
+      {modalObjectif && (
+        <div
+          className="mf-modal-fond"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) {
+              setModalObjectif(false);
+            }
+          }}
+        >
+          <div
+            className="mf-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="mf-modal-titre"
+          >
+            <div className="mf-modal-entete">
+              <div>
+                <h2 id="mf-modal-titre">
+                  Nouvel objectif
                 </h2>
 
-                {evolutionSolde.length === 0 ? (
-                  <p>
-                    Aucune transaction pour le moment
-                  </p>
-                ) : (
-                  <ResponsiveContainer
-                    width="100%"
-                    height={190}
-                  >
-                    <LineChart
-                      data={evolutionSolde}
-                    >
-                      <CartesianGrid
-                        strokeDasharray="3 3"
-                        stroke="#e5e9e1"
-                      />
-
-                      <XAxis
-                        dataKey="date"
-                        tickFormatter={(date) =>
-                          date.slice(8, 10) +
-                          "/" +
-                          date.slice(5, 7)
-                        }
-                      />
-
-                      <YAxis />
-
-                      <Tooltip />
-
-                      <Line
-                        type="monotone"
-                        dataKey="solde"
-                        stroke="#455d50"
-                        strokeWidth={3}
-                        dot={{
-                          fill: "#8ba58e",
-                          r: 5,
-                        }}
-                        activeDot={{ r: 7 }}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                )}
+                <p>
+                  Quel projet souhaites-tu financer ?
+                </p>
               </div>
-
-              <div className="chart-card">
-                <h2>
-                  Répartition des dépenses
-                </h2>
-
-                {depensesRegroupees.length === 0 ? (
-                  <p>
-                    Aucune dépense pour le moment
-                  </p>
-                ) : (
-                  <ResponsiveContainer
-                    width="100%"
-                    height={190}
-                  >
-                    <PieChart>
-                      <Pie
-                        data={depensesRegroupees}
-                        dataKey="montant"
-                        nameKey="categorie"
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={48}
-                        outerRadius={70}
-                      >
-                        {depensesRegroupees.map(
-                          (depense, index) => (
-                            <Cell
-                              key={
-                                depense.categorie
-                              }
-                              fill={
-                                categories.find(
-                                  (cat) =>
-                                    cat.nom ===
-                                      depense.categorie &&
-                                    cat.type ===
-                                      "depense"
-                                )?.couleur ||
-                                COLORS[
-                                  index %
-                                    COLORS.length
-                                ]
-                              }
-                            />
-                          )
-                        )}
-                      </Pie>
-
-                      <Tooltip />
-
-                      <Legend
-                        verticalAlign="bottom"
-                        align="center"
-                        iconType="circle"
-                        formatter={(value) =>
-                          `${value} - ${(
-                            depensesParCategorie[
-                              value
-                            ] || 0
-                          ).toLocaleString(
-                            "fr-FR"
-                          )} €`
-                        }
-                      />
-                    </PieChart>
-                  </ResponsiveContainer>
-                )}
-              </div>
-            </div>
-
-            {/* AJOUTER UNE TRANSACTION */}
-
-            <div className="ajout-card">
-              <h2>
-                Ajouter une transaction
-              </h2>
-
-              <input
-                type="text"
-                placeholder="Nom de la transaction"
-                value={nom}
-                onChange={(event) =>
-                  setNom(event.target.value)
-                }
-              />
-
-              <input
-                type="number"
-                placeholder="Montant en €"
-                min="0.01"
-                step="0.01"
-                value={montant}
-                onChange={(event) =>
-                  setMontant(event.target.value)
-                }
-              />
-
-              <select
-                value={typeTransaction}
-                onChange={(event) => {
-                  setTypeTransaction(
-                    event.target.value
-                  );
-                  setCategorie("");
-                }}
-              >
-                <option value="depense">
-                  Dépense
-                </option>
-
-                <option value="revenu">
-                  Revenu
-                </option>
-              </select>
-
-              <select
-                value={categorie}
-                onChange={(event) =>
-                  setCategorie(event.target.value)
-                }
-              >
-                <option value="">
-                  Choisir une catégorie
-                </option>
-
-                {(
-                  typeTransaction === "depense"
-                    ? categoriesDepenses
-                    : categoriesRevenus
-                ).map((cat) => (
-                  <option
-                    key={cat}
-                    value={cat}
-                  >
-                    {cat}
-                  </option>
-                ))}
-              </select>
 
               <button
-                onClick={ajouterTransaction}
+                type="button"
+                onClick={() => setModalObjectif(false)}
+                aria-label="Fermer"
               >
-                Ajouter une transaction
+                ×
               </button>
-
-              {erreur && (
-                <p className="message-erreur">
-                  {erreur}
-                </p>
-              )}
             </div>
 
-            {/* TRANSACTIONS RÉCENTES */}
+            <form onSubmit={ajouterObjectif}>
+              <label htmlFor="mf-nom-objectif">
+                Nom de l'objectif
+              </label>
 
-            <div className="transactions-card">
-              <h2>
-                Transactions récentes
-              </h2>
+              <input
+                id="mf-nom-objectif"
+                type="text"
+                placeholder="Ex : Vacances"
+                value={nomObjectif}
+                maxLength={50}
+                onChange={(event) =>
+                  setNomObjectif(event.target.value)
+                }
+                required
+              />
 
-              <div className="transactions-filtres">
-                <input
-                  type="text"
-                  placeholder="Rechercher une transaction..."
-                  value={recherche}
-                  onChange={(event) =>
-                    setRecherche(
-                      event.target.value
-                    )
-                  }
-                />
+              <label htmlFor="mf-montant-cible">
+                Montant à atteindre (€)
+              </label>
 
-                <select
-                  value={filtreType}
-                  onChange={(event) =>
-                    setFiltreType(
-                      event.target.value
-                    )
-                  }
+              <input
+                id="mf-montant-cible"
+                type="number"
+                min="0.01"
+                step="0.01"
+                placeholder="Ex : 1500"
+                value={montantObjectif}
+                onChange={(event) =>
+                  setMontantObjectif(event.target.value)
+                }
+                required
+              />
+
+              <label htmlFor="mf-deja-economise">
+                Montant déjà économisé (€)
+              </label>
+
+              <input
+                id="mf-deja-economise"
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="Ex : 200"
+                value={montantEconomise}
+                onChange={(event) =>
+                  setMontantEconomise(event.target.value)
+                }
+              />
+
+              {erreurObjectif && (
+                <p className="mf-erreur">
+                  {erreurObjectif}
+                </p>
+              )}
+
+              <div className="mf-modal-actions">
+                <button
+                  type="button"
+                  className="mf-bouton-secondaire"
+                  onClick={() => setModalObjectif(false)}
                 >
-                  <option value="tous">
-                    Toutes
-                  </option>
+                  Annuler
+                </button>
 
-                  <option value="depense">
-                    Dépenses
-                  </option>
-
-                  <option value="revenu">
-                    Revenus
-                  </option>
-                </select>
+                <button
+                  type="submit"
+                  className="mf-bouton-principal"
+                >
+                  Créer l'objectif
+                </button>
               </div>
-
-              {transactionsRecentes.length === 0 ? (
-                <p>
-                  Aucune transaction trouvée.
-                </p>
-              ) : (
-                transactionsRecentes.map(
-                  (transaction) => (
-                    <div
-                      className="transaction-item"
-                      key={transaction.id}
-                    >
-                      {transactionEnModification ===
-                      transaction.id ? (
-                        <div className="modification-form">
-                          <input
-                            type="text"
-                            placeholder="Nom"
-                            value={nomModifie}
-                            onChange={(event) =>
-                              setNomModifie(
-                                event.target.value
-                              )
-                            }
-                          />
-
-                          <input
-                            type="number"
-                            placeholder="Montant"
-                            min="0.01"
-                            step="0.01"
-                            value={montantModifie}
-                            onChange={(event) =>
-                              setMontantModifie(
-                                event.target.value
-                              )
-                            }
-                          />
-
-                          <select
-                            value={typeModifie}
-                            onChange={(event) => {
-                              setTypeModifie(
-                                event.target.value
-                              );
-                              setCategorieModifiee(
-                                ""
-                              );
-                            }}
-                          >
-                            <option value="depense">
-                              Dépense
-                            </option>
-
-                            <option value="revenu">
-                              Revenu
-                            </option>
-                          </select>
-
-                          <select
-                            value={
-                              categorieModifiee
-                            }
-                            onChange={(event) =>
-                              setCategorieModifiee(
-                                event.target.value
-                              )
-                            }
-                          >
-                            <option value="">
-                              Choisir une catégorie
-                            </option>
-
-                            {(
-                              typeModifie === "depense"
-                                ? categoriesDepenses
-                                : categoriesRevenus
-                            ).map((cat) => (
-                              <option
-                                key={cat}
-                                value={cat}
-                              >
-                                {cat}
-                              </option>
-                            ))}
-
-                            {categorieModifiee !== "" &&
-                              !(
-                                typeModifie === "depense"
-                                  ? categoriesDepenses
-                                  : categoriesRevenus
-                              ).includes(
-                                categorieModifiee
-                              ) && (
-                                <option
-                                  value={
-                                    categorieModifiee
-                                  }
-                                >
-                                  {
-                                    categorieModifiee
-                                  }
-                                </option>
-                              )}
-                          </select>
-
-                          {erreurModification && (
-                            <p className="message-erreur">
-                              {
-                                erreurModification
-                              }
-                            </p>
-                          )}
-
-                          <div className="transaction-actions">
-                            <button
-                              className="bouton-enregistrer"
-                              onClick={() =>
-                                enregistrerModification(
-                                  transaction.id
-                                )
-                              }
-                            >
-                              Enregistrer
-                            </button>
-
-                            <button
-                              className="bouton-annuler"
-                              onClick={
-                                annulerModification
-                              }
-                            >
-                              Annuler
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <>
-                          <div className="transaction-infos">
-                            <p className="transaction-nom">
-                              {
-                                transaction.nom
-                              }
-                            </p>
-
-                            <p className="transaction-categorie">
-                              {
-                                transaction.categorie
-                              }
-                            </p>
-
-                            <p
-                              className={
-                                transaction.montant <
-                                0
-                                  ? "montant-negatif"
-                                  : "montant-positif"
-                              }
-                            >
-                              {Number(
-                                transaction.montant
-                              ).toLocaleString(
-                                "fr-FR"
-                              )}{" "}
-                              €
-                            </p>
-
-                            <p className="transaction-date">
-                              {transaction.date.slice(
-                                8,
-                                10
-                              ) +
-                                "/" +
-                                transaction.date.slice(
-                                  5,
-                                  7
-                                ) +
-                                "/" +
-                                transaction.date.slice(
-                                  0,
-                                  4
-                                )}
-                            </p>
-                          </div>
-
-                          <div className="transaction-actions">
-                            <button
-                              className="bouton-modifier"
-                              onClick={() =>
-                                commencerModification(
-                                  transaction
-                                )
-                              }
-                            >
-                              Modifier
-                            </button>
-
-                            <button
-                              className="bouton-supprimer"
-                              onClick={() =>
-                                supprimerTransaction(
-                                  transaction.id
-                                )
-                              }
-                            >
-                              Supprimer
-                            </button>
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  )
-                )
-              )}
-            </div>
-          </>
-        )}
-      </main>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
