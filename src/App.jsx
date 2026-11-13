@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import "./App.css";
 import "./Accueil.css";
+import Objectifs from "./pages/Objectifs";
 
 import Transactions from "./pages/Transactions";
 import Budgets from "./pages/Budgets";
@@ -975,7 +976,7 @@ function App() {
             setCategories={setCategories}
           />
         ) : pageActive === "objectifs" ? (
-          afficherObjectifs()
+        <Objectifs objectifs={objectifs} setObjectifs={setObjectifs} />
         ) : pageActive === "statistiques" ? (
           <Statistiques
             transactions={transactions}
